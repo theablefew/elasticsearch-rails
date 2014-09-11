@@ -79,10 +79,6 @@ module Elasticsearch
           Hash[@values]
         end
 
-        def hits
-          to_a.response.hits
-        end
-
         def inspect
           entries = to_a.results.take([size_value.to_i + 1, 11].compact.min).map!(&:inspect)
           "#<#{self.class.name} [#{entries.join(', ')}, total: #{to_a.total}, max: #{to_a.total} ]>"

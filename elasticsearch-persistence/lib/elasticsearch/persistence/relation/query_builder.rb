@@ -9,7 +9,11 @@ module Elasticsearch
       end
 
       def facets
-        values[:facet]
+        aggregations
+      end
+
+      def aggregations
+        values[:aggregation]
       end
 
       def filters
@@ -50,7 +54,7 @@ module Elasticsearch
         build_sort unless sort.blank?
         build_highlights unless highlights.blank?
         build_filters unless filters.blank?
-        build_facets unless facets.blank?
+        build_aggregations unless facets.blank?
         structure.attributes!
       end
 
@@ -71,7 +75,7 @@ module Elasticsearch
             build_query
             query_filters.each do |f|
               puts f
-              structure.filter filter(f[:name], f[:args])
+              structure.filter extract_filters(f[:name], f[:args])
             end
           end
         end
@@ -87,13 +91,13 @@ module Elasticsearch
 
       def build_filters
         filters.each do |f|
-          structure.filter(f[:name], f[:args], &f[:l])
+          structure.filter extract_filters(f[:name], f[:args])
         end
       end
 
-      def build_facets
-        facets.each do |f|
-          structure.facets tire.facet(f[:name], f[:args], &f[:l])
+      def build_aggregations
+        aggregations.each do |f|
+          structure.aggs facet(f[:name], f[:args])
         end
       end
 
@@ -119,7 +123,7 @@ module Elasticsearch
         _and.join(" AND ")
       end
 
-      def filter(name,opts = {})
+      def extract_filters(name,opts = {})
         Jbuilder.new do |filter|
           filter.set! name do
             case
@@ -128,9 +132,24 @@ module Elasticsearch
             when opts.is_a?(Array)
                 extract_filter_arguments_from_array(filter, opts)
             else
-              raise "Filter only accepts Hash or Array"
+              raise "#filter only accepts Hash or Array"
             end
+          end
+        end
+      end
+
+      def facet(name, opts = {})
+        Jbuilder.new do |facet|
+          facet.set! name do
+            case
+            when opts.is_a?(Hash)
+                facet.extract! opts, *opts.keys
+            when opts.is_a?(Array)
+                extract_filter_arguments_from_array(facet, opts)
+            else
+              raise "#facet only accepts Hash or Array"
             end
+          end
         end
       end
 

@@ -87,6 +87,11 @@ module Elasticsearch
           def response
             @response
           end
+
+
+          def aggregations
+            response.aggregations
+          end
         end
       end
     end
