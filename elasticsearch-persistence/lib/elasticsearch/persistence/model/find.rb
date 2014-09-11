@@ -5,6 +5,7 @@ module Elasticsearch
       module Find
         module ClassMethods
 
+
           # Returns all models (up to 10,000)
           #
           # @example Retrieve all people
@@ -17,7 +18,7 @@ module Elasticsearch
           #     Person.all query: { match: { last_name: 'Smith'  } }
           #     # => [#<Person:0x007ff1d8fb04b0 ... ]
           #
-          def all(options={})
+          def _all(options={})
             gateway.search( { query: { match_all: {} }, size: 10_000 }.merge(options) )
           end
 

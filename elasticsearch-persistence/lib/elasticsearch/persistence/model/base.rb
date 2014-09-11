@@ -49,6 +49,8 @@ module Elasticsearch
             @_version
           end
 
+
+
           def to_s
             "#<#{self.class} #{attributes.to_hash.inspect.gsub(/:(\w+)=>/, '\1: ')}>"
           end; alias :inspect :to_s

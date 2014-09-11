@@ -2,11 +2,19 @@ require 'elasticsearch'
 require 'elasticsearch/model/indexing'
 require 'hashie'
 
+require 'active_support'
+require 'active_support/rails'
 require 'active_support/inflector'
 
 require 'elasticsearch/persistence/version'
 
 require 'elasticsearch/persistence/client'
+require 'elasticsearch/persistence/scoping'
+require 'elasticsearch/persistence/scoping/default'
+require 'elasticsearch/persistence/scoping/named'
+require 'elasticsearch/persistence/inheritence'
+require 'elasticsearch/persistence/querying'
+
 require 'elasticsearch/persistence/repository/response/results'
 require 'elasticsearch/persistence/repository/naming'
 require 'elasticsearch/persistence/repository/serialize'
@@ -16,8 +24,17 @@ require 'elasticsearch/persistence/repository/search'
 require 'elasticsearch/persistence/repository/class'
 require 'elasticsearch/persistence/repository'
 
-module Elasticsearch
+require 'elasticsearch/persistence/relation/finder_methods'
+require 'elasticsearch/persistence/relation/query_methods'
+require 'elasticsearch/persistence/relation/search_option_methods'
+require 'elasticsearch/persistence/relation/spawn_methods'
+require 'elasticsearch/persistence/relation/delegation'
+require 'elasticsearch/persistence/relation/merger'
 
+require 'elasticsearch/persistence/relation'
+
+
+module Elasticsearch
   # Persistence for Ruby domain objects and models in Elasticsearch
   # ===============================================================
   #
@@ -76,37 +93,58 @@ module Elasticsearch
   #     article.destroy
   #
   module Persistence
+    extend ActiveSupport::Autoload
 
-    # :nodoc:
-    module ClassMethods
+    eager_autoload do
+      autoload :Client
+      autoload :Model
+      autoload :Repository
+      autoload :Scoping
+      autoload :Relation
+      autoload :Querying
+      autoload :Inheritence
 
-      # Get or set the default client for all repositories and models
-      #
-      # @example Set and configure the default client
-      #
-      #     Elasticsearch::Persistence.client Elasticsearch::Client.new host: 'http://localhost:9200', tracer: true
-      #
-      # @example Perform an API request through the client
-      #
-      #     Elasticsearch::Persistence.client.cluster.health
-      #     # => { "cluster_name" => "elasticsearch" ... }
-      #
-      def client client=nil
-        @client = client || @client || Elasticsearch::Client.new
-      end
-
-      # Set the default client for all repositories and models
-      #
-      # @example Set and configure the default client
-      #
-      #     Elasticsearch::Persistence.client = Elasticsearch::Client.new host: 'http://localhost:9200', tracer: true
-      #     => #<Elasticsearch::Transport::Client:0x007f96a6dd0d80 @transport=... >
-      #
-      def client=(client)
-        @client = client
+      autoload_under 'relation' do
+        autoload :QueryMethods
+        autoload :QueryBuilder
+        autoload :SearchOptionMethods
+        autoload :FinderMethods
+        autoload :SpawnMethods
+        autoload :Delegation
       end
     end
 
-    extend ClassMethods
+    module Model
+      extend ActiveSupport::Autoload
+
+      autoload :GatewayDelegation
+    end
+
+    module Repository
+      extend ActiveSupport::Autoload
+      autoload :Class
+      autoload :Find
+      autoload :Search
+      autoload :Serialize
+      autoload :Store
+      autoload :Naming
+    end
+
+    module Scoping
+      extend ActiveSupport::Autoload
+
+      eager_autoload do
+        autoload :Named
+        autoload :Default
+      end
+    end
+
+    def self.eager_load!
+      super
+      Elasticsearch::Persistence::Scoping.eager_load!
+    end
+
+    extend Client::ClassMethods
+
   end
 end

@@ -10,7 +10,8 @@ module Elasticsearch
         class Results
           include Enumerable
 
-          attr_reader :repository
+          attr_reader :repository, :loaded
+          alias :loaded? :loaded
 
           # @param repository [Elasticsearch::Persistence::Repository::Class] The repository instance
           # @param response   [Hash]  The full response returned from the Elasticsearch client
@@ -20,6 +21,7 @@ module Elasticsearch
             @repository = repository
             @response   = Hashie::Mash.new(response)
             @options    = options
+            @loaded     = false
           end
 
           def method_missing(method_name, *arguments, &block)
@@ -67,6 +69,8 @@ module Elasticsearch
             @results ||= response['hits']['hits'].map do |document|
               repository.deserialize(document.to_hash)
             end
+            @loaded = true
+            @results
           end
 
           # Access the response returned from Elasticsearch by the client

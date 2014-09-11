@@ -1,12 +1,13 @@
 module Elasticsearch
   module Persistence
-    module Repository
 
-      # Wraps the Elasticsearch Ruby
-      # [client](https://github.com/elasticsearch/elasticsearch-ruby/tree/master/elasticsearch#usage)
-      #
-      module Client
+    # Wraps the Elasticsearch Ruby
+    # [client](https://github.com/elasticsearch/elasticsearch-ruby/tree/master/elasticsearch#usage)
+    #
+    module Client
+      extend ActiveSupport::Concern
 
+      module ClassMethods
         # Get or set the default client for this repository
         #
         # @example Set and configure the client for the repository class
@@ -42,10 +43,9 @@ module Elasticsearch
         #
         def client=(client)
           @client = client
-          @client
         end
       end
-
     end
+
   end
 end

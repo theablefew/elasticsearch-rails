@@ -38,7 +38,7 @@ module Elasticsearch
       #     # => {"status"=>200, "name"=>"Venom", ... }
       #
       class Class
-        include Elasticsearch::Persistence::Repository::Client
+        include Elasticsearch::Persistence::Client::ClassMethods
         include Elasticsearch::Persistence::Repository::Naming
         include Elasticsearch::Persistence::Repository::Serialize
         include Elasticsearch::Persistence::Repository::Store
