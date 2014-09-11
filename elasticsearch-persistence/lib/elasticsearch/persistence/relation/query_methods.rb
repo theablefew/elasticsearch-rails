@@ -15,8 +15,6 @@ module Elasticsearch
       end
 
 
-
-
       MULTI_VALUE_METHODS.each do |name|
         class_eval <<-CODE, __FILE__, __LINE__ + 1
           def #{name}_values                   # def select_values
@@ -69,6 +67,8 @@ module Elasticsearch
         self.size_value = args
         self
       end
+
+      alias :limit :size
 
       def where(opts = :chain, *rest)
         if opts == :chain
