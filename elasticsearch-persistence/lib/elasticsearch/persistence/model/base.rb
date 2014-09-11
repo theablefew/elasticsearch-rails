@@ -9,6 +9,7 @@ module Elasticsearch
           # Model initializer sets the `@id` variable if passed
           #
           def initialize(attributes={})
+            puts "ATTRIBUTES #{attributes}"
             @_id = attributes[:id] || attributes['id']
             super
           end

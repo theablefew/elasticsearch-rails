@@ -25,7 +25,7 @@ module Elasticsearch
       end
 
       def fields
-        values[:fields]
+        values[:field]
       end
 
       def highlights
@@ -49,11 +49,13 @@ module Elasticsearch
       end
 
       def to_elastic
+        puts "fields: #{fields}"
         @structure = Jbuilder.new ignore_nil: true
         query_filters ? build_filtered_query : build_query
         build_sort unless sort.blank?
         build_highlights unless highlights.blank?
         build_filters unless filters.blank?
+        build_fields unless fields.blank?
         build_aggregations unless facets.blank?
         structure.attributes!
       end
@@ -74,7 +76,6 @@ module Elasticsearch
           structure.filtered do
             build_query
             query_filters.each do |f|
-              puts f
               structure.filter extract_filters(f[:name], f[:args])
             end
           end
@@ -98,6 +99,12 @@ module Elasticsearch
       def build_aggregations
         aggregations.each do |f|
           structure.aggs facet(f[:name], f[:args])
+        end
+      end
+
+      def build_fields
+        structure.fields do
+          structure.array! fields.flatten
         end
       end
 

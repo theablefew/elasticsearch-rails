@@ -10,6 +10,8 @@ module Elasticsearch
         class Results
           include Enumerable
 
+          delegate :aggregations, to: :response
+
           attr_reader :repository, :loaded
           alias :loaded? :loaded
 
@@ -88,10 +90,6 @@ module Elasticsearch
             @response
           end
 
-
-          def aggregations
-            response.aggregations
-          end
         end
       end
     end

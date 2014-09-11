@@ -22,7 +22,7 @@ module Elasticsearch
         #
         def deserialize(document)
           _klass = klass || __get_klass_from_type(document['_type'])
-          _klass.new document['_source']
+          _klass.new document['_source'] || document['_fields'].merge(id: document['_id'])
         end
       end
 

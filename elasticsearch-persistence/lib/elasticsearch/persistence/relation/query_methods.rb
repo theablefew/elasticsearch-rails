@@ -115,6 +115,15 @@ module Elasticsearch
         self
       end
 
+      def field(*args)
+        spawn.field!(*args)
+      end
+      alias :fields :field
+
+      def field!(*args)
+        self.field_values += args
+        self
+      end
 
       def bind(value)
         spawn.bind!(value)
