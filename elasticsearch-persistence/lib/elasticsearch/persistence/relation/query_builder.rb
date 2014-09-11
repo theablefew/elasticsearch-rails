@@ -49,7 +49,6 @@ module Elasticsearch
       end
 
       def to_elastic
-        puts "fields: #{fields}"
         @structure = Jbuilder.new ignore_nil: true
         query_filters ? build_filtered_query : build_query
         build_sort unless sort.blank?

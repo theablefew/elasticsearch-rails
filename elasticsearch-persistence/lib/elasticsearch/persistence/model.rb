@@ -97,8 +97,7 @@ module Elasticsearch
             end
 
             def deserialize(document)
-              puts "SOURCE: #{document['_source']}"
-              object = klass.new document['_source'] || document['_fields']
+              object = klass.new document['_source'] || document['fields']
 
               # Set the meta attributes when fetching the document from Elasticsearch
               #
