@@ -9,11 +9,11 @@ module Elasticsearch
       end
 
       def facets
-        values[:facets]
+        values[:facet]
       end
 
       def filters
-        values[:filters]
+        values[:filter]
       end
 
       def query
@@ -37,7 +37,7 @@ module Elasticsearch
       end
 
       def query_filters
-        values[:query_filters]
+        values[:query_filter]
       end
 
       def search_options
@@ -70,7 +70,8 @@ module Elasticsearch
           structure.filtered do
             build_query
             query_filters.each do |f|
-              structure.filter filter(f[:name], f[:options])
+              puts f
+              structure.filter filter(f[:name], f[:args])
             end
           end
         end
@@ -100,7 +101,6 @@ module Elasticsearch
         values[:search_options] ||= []
 
         opts = extra_search_options
-        puts "SEARCH OPTIONS: #{opts}"
         (values[:search_options] + [opts]).compact.inject(Hash.new) { |h,k,v| h.merge(k) }
       end
 
@@ -117,6 +117,29 @@ module Elasticsearch
           _and << arg if arg.class == String
         end
         _and.join(" AND ")
+      end
+
+      def filter(name,opts = {})
+        Jbuilder.new do |filter|
+          filter.set! name do
+            case
+            when opts.is_a?(Hash)
+                filter.extract! opts, *opts.keys
+            when opts.is_a?(Array)
+                extract_filter_arguments_from_array(filter, opts)
+            else
+              raise "Filter only accepts Hash or Array"
+            end
+            end
+        end
+      end
+
+      def extract_filter_arguments_from_array(filter, opts)
+        filter.child! do
+          opts.each do |opt|
+            filter.extract! opt, *opt.keys
+          end
+        end
       end
 
     end

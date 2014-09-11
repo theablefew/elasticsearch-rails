@@ -5,7 +5,7 @@ module Elasticsearch
     module QueryMethods
       extend ActiveSupport::Concern
 
-      MULTI_VALUE_METHODS = [:where, :order, :fields, :filters, :search_option_values]
+      MULTI_VALUE_METHODS = [:where, :order, :fields, :filters, :search_option_values, :query_filter, :facet_filter]
       SINGLE_VALUE_METHODS = [:size]
 
       class WhereChain
@@ -93,6 +93,15 @@ module Elasticsearch
         end
       end
 
+
+      def filter(name, options = {}, &block)
+        spawn.filter!(name, options, &block)
+      end
+
+      def filter!(name, options = {}, &block)
+        self.query_filter_values += [{name: name, args: options, l: block}]
+        self
+      end
 
 
       def bind(value)
