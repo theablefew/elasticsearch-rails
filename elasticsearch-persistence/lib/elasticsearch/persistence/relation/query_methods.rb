@@ -51,7 +51,7 @@ module Elasticsearch
       end
 
       def order!(*args)
-        self.order_values += args
+        self.order_values += [preprocess_order_args(args)]
         self
       end
 
@@ -186,14 +186,10 @@ module Elasticsearch
       end
 
       def preprocess_order_args(order_args)
-        order_args.flatten!
-        validate_order_args(order_args)
-
-        references = order_args.grep(String)
-        references.map! { |arg| arg =~ /^([a-zA-Z]\w*)\.(\w+)/ && $1 }.compact!
-        references!(references) if references.any?
-
-        order_args.map! {|arg| arg }.flatten!
+        puts Rainbow("ORDER: #{order_args}").color :red
+        args = order_args.reject{ |arg| arg.is_a?(Hash) }.take(2)
+        return [Hash[[args]]] if args.length == 2
+        order_args.select { |arg| arg.is_a?(Hash)}.flatten
       end
 
       def add_relations_to_bind_values(attributes)

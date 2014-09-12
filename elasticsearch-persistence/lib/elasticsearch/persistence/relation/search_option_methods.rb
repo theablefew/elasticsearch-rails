@@ -24,6 +24,15 @@ module Elasticsearch
         self
       end
 
+      def search_options(*args)
+        spawn.search_options!(*args)
+      end
+
+      def search_options!(*args)
+        self.search_option_values = args
+        self
+      end
+
       private
 
       def merge_search_option_values(key, value)
