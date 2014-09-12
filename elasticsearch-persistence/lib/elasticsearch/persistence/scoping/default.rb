@@ -96,7 +96,7 @@ module Elasticsearch
           end
 
           def build_default_scope(base_rel = relation) # :nodoc:
-            if !Model.is_a?(method(:default_scope).owner)
+            if !self.is_a?(method(:default_scope).owner)
               # The user has defined their own default scope method, so call that
               evaluate_default_scope { default_scope }
             elsif default_scopes.any?
