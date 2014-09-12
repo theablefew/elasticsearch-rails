@@ -144,7 +144,7 @@ module Elasticsearch
             self.bind_values += rel.bind_values
           end
 
-          [@klass.send(:sanitize_sql, other.empty? ? opts : ([opts] + other))]
+          [other.empty? ? opts : ([opts] + other)]
         when Hash
           [opts]
         else
