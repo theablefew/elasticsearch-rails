@@ -1,9 +1,14 @@
 require 'elasticsearch'
 require 'elasticsearch/model/indexing'
 require 'hashie'
+require 'jbuilder'
 
 require 'active_support'
-require 'active_support/rails'
+require 'active_support/dependencies/autoload'
+require 'active_support/concern'
+require 'active_support/core_ext/class/attribute'
+require 'active_support/core_ext/module/delegation'
+require 'active_support/deprecation'
 require 'active_support/inflector'
 
 require 'elasticsearch/persistence/version'
