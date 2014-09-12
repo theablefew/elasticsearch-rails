@@ -186,7 +186,6 @@ module Elasticsearch
       end
 
       def preprocess_order_args(order_args)
-        puts Rainbow("ORDER: #{order_args}").color :red
         args = order_args.reject{ |arg| arg.is_a?(Hash) }.take(2)
         return [Hash[[args]]] if args.length == 2
         order_args.select { |arg| arg.is_a?(Hash)}.flatten
