@@ -6,6 +6,7 @@ module Elasticsearch
       #
       module Search
 
+        include Elasticsearch::Persistence::QueryCache
         # Returns a collection of domain objects by an Elasticsearch query
         #
         # Pass the query either as a string or a Hash-like object
@@ -41,16 +42,20 @@ module Elasticsearch
         #
         def search(query_or_definition, options={})
           type = document_type || (klass ? __get_type_from_class(klass) : nil  )
+          request = {index: index_name, type: type, body: query_or_definition.to_hash }.merge(options)
 
           case
           when query_or_definition.respond_to?(:to_hash)
-            response = client.search( { index: index_name, type: type, body: query_or_definition.to_hash }.merge(options) )
+            request.merge!(body: query_or_definition.to_hash)
           when query_or_definition.is_a?(String)
-            response = client.search( { index: index_name, type: type, q: query_or_definition }.merge(options) )
+            request.merge!(q: query_or_definition)
           else
             raise ArgumentError, "[!] Pass the search definition as a Hash-like object or pass the query as a String" +
                                  " -- #{query_or_definition.class} given."
           end
+
+          response = cache_query(to_curl(request), klass) { client.search(request) }
+
           Response::Results.new(self, response)
         end
 
@@ -78,6 +83,64 @@ module Elasticsearch
           response = search query_or_definition, options.update(search_type: 'count')
           response.response.hits.total
         end
+
+
+        private
+
+        ## TODO: Not happy with where this is living right now.
+        #
+        def to_curl(arguments={})
+          host = client.transport.options[:hosts].first
+          arguments[:index] = '_all' if ! arguments[:index] && arguments[:type]
+
+          valid_params = [
+            :analyzer,
+            :analyze_wildcard,
+            :default_operator,
+            :df,
+            :explain,
+            :fields,
+            :from,
+            :ignore_indices,
+            :ignore_unavailable,
+            :allow_no_indices,
+            :expand_wildcards,
+            :lenient,
+            :lowercase_expanded_terms,
+            :preference,
+            :q,
+            :routing,
+            :scroll,
+            :search_type,
+            :size,
+            :sort,
+            :source,
+            :_source,
+            :_source_include,
+            :_source_exclude,
+            :stats,
+            :suggest_field,
+            :suggest_mode,
+            :suggest_size,
+            :suggest_text,
+            :timeout,
+            :version ]
+
+            method = 'GET'
+            path   = Elasticsearch::API::Utils.__pathify( Elasticsearch::API::Utils.__listify(arguments[:index]), Elasticsearch::API::Utils.__listify(arguments[:type]), '_search' )
+
+            params = Elasticsearch::API::Utils.__validate_and_extract_params arguments, valid_params
+            body   = arguments[:body]
+
+            params[:fields] = Elasticsearch::API::Utils.__listify(params[:fields]) if params[:fields]
+
+            url        = path
+            trace_url  = "http://#{host}/#{url}?#{::Faraday::Utils::ParamsHash[params].to_query}"
+            trace_body = body ? " -d '#{body}'" : ''
+
+            Rainbow("curl -X #{method.to_s.upcase} '#{CGI.unescape(trace_url)}'#{trace_body}\n").color :white
+        end
+
       end
 
     end

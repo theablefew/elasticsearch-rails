@@ -3,6 +3,8 @@ require 'elasticsearch/model/indexing'
 require 'hashie'
 require 'jbuilder'
 
+require 'rails/instrumentation/railtie' if defined?(Rails)
+
 require 'active_support'
 require 'active_support/dependencies/autoload'
 require 'active_support/concern'
@@ -19,6 +21,7 @@ require 'elasticsearch/persistence/scoping/default'
 require 'elasticsearch/persistence/scoping/named'
 require 'elasticsearch/persistence/inheritence'
 require 'elasticsearch/persistence/querying'
+require 'elasticsearch/persistence/query_cache'
 
 require 'elasticsearch/persistence/repository/response/results'
 require 'elasticsearch/persistence/repository/naming'
@@ -108,6 +111,7 @@ module Elasticsearch
       autoload :Relation
       autoload :Querying
       autoload :Inheritence
+      autoload :QueryCache
 
       autoload_under 'relation' do
         autoload :QueryMethods
@@ -150,6 +154,7 @@ module Elasticsearch
     end
 
     extend Client::ClassMethods
+    extend QueryCache::CacheMethods
 
   end
 end
