@@ -97,7 +97,7 @@ module Elasticsearch
 
       def build_aggregations
         aggregations.each do |f|
-          structure.aggs facet(f[:name], f[:args])
+          structure.facets facet(f[:name], f[:args])
         end
       end
 

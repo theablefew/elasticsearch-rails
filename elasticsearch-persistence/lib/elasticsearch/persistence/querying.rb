@@ -6,10 +6,10 @@ module Elasticsearch
         delegate :filter, :facet, :aggregation, to: :all
         delegate :search_options, :routing, :search_type, to: :all
 
-        def fetch(es)
+        def fetch_results(es)
           gateway.search(es.to_elastic, es.search_options)
         end
 
       end
-    end
+  end
 end

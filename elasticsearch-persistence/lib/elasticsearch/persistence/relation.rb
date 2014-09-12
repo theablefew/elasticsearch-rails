@@ -64,16 +64,14 @@ module Elasticsearch
 
           self
         end
+        alias :fetch :load
 
         def exec_queries
-          #TODO: need to modify this
-          @records = @klass.fetch(query_builder)
+          @records = @klass.fetch_results(query_builder)
 
           @loaded = true
           @records
         end
-
-
 
         def values
           Hash[@values]
@@ -90,12 +88,6 @@ module Elasticsearch
         def query_builder
           QueryBuilder.new(values)
         end
-        #def inspect
-          #entries = to_a.take([limit_value, 11].compact.min).map!(&:inspect)
-          #entries[10] = '...' if entries.size == 11
-
-          #"#<#{self.class.name} [#{entries.join(', ')}]>"
-        #end
 
     end
   end

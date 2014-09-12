@@ -10,7 +10,7 @@ module Elasticsearch
         class Results
           include Enumerable
 
-          delegate :aggregations, to: :response
+          delegate :aggregations, :facets, to: :response
 
           attr_reader :repository, :loaded
           alias :loaded? :loaded
