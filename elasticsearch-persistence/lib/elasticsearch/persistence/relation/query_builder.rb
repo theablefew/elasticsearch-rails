@@ -108,10 +108,10 @@ module Elasticsearch
       end
 
       def build_search_options
-        values[:search_options] ||= []
+        values[:search_option] ||= []
 
         opts = extra_search_options
-        (values[:search_options] + [opts]).compact.inject(Hash.new) { |h,k,v| h.merge(k) }
+        (values[:search_option] + [opts]).compact.inject(Hash.new) { |h,k,v| h.merge(k) }
       end
 
       def extra_search_options

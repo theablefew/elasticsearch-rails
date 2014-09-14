@@ -42,7 +42,7 @@ module Elasticsearch
         #
         def search(query_or_definition, options={})
           type = document_type || (klass ? __get_type_from_class(klass) : nil  )
-          request = {index: index_name, type: type, body: query_or_definition.to_hash }.merge(options)
+          request = {index: index_name, type: type, body: query_or_definition.to_hash }
 
           case
           when query_or_definition.respond_to?(:to_hash)
@@ -54,7 +54,7 @@ module Elasticsearch
                                  " -- #{query_or_definition.class} given."
           end
 
-          response = cache_query(to_curl(request), klass) { client.search(request) }
+          response = cache_query(to_curl(request.merge(options)), klass) { client.search(request.merge(options)) }
 
           Response::Results.new(self, response)
         end
@@ -136,7 +136,7 @@ module Elasticsearch
 
             url        = path
             trace_url  = "http://#{host}/#{url}?#{::Faraday::Utils::ParamsHash[params].to_query}"
-            trace_body = body ? " -d '#{body}'" : ''
+            trace_body = body ? " -d '#{body.to_json}'" : ''
 
             Rainbow("curl -X #{method.to_s.upcase} '#{CGI.unescape(trace_url)}'#{trace_body}\n").color :white
         end
