@@ -98,7 +98,6 @@ module Elasticsearch
       def build_aggregations
         structure.facets do
           aggregations.each do |agg|
-            puts "Aggregation: #{agg}"
             structure.set! agg[:name], facet(agg[:name], agg[:args])
           end
         end
