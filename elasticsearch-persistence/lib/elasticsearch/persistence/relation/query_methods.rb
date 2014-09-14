@@ -99,7 +99,7 @@ module Elasticsearch
       end
 
       def filter!(name, options = {}, &block)
-        self.query_filter_values += [{name: name, args: options, l: block}]
+        self.query_filter_values += [{name: name, args: options}]
         self
       end
 
@@ -111,7 +111,7 @@ module Elasticsearch
       alias :facet :aggregation
 
       def aggregation!(name, options = {}, &block)
-        self.aggregation_values += [{name: name, args: options, l: block}]
+        self.aggregation_values += [{name: name, args: options}]
         self
       end
 
