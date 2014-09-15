@@ -9,7 +9,7 @@ module Elasticsearch
             if current_scope
               current_scope.clone
             else
-              default_scoped
+              default_scoped.size(10000)
             end
           end
 
