@@ -117,7 +117,6 @@ module Elasticsearch
         end
 
         def method_missing(method, *args, &block)
-          puts "Method Missing: #{method}"
           if @klass.respond_to?(method)
             scoping { @klass.public_send(method, *args, &block) }
           elsif array_delegable?(method)

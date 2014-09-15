@@ -106,7 +106,7 @@ module Elasticsearch
             end
 
             def deserialize(document)
-              object = klass.new document['_source'] || document['fields']
+              object = klass.new Hashie::Mash.new(document['_source']) || Hashie::Mash.new(document['fields'])
 
               # Set the meta attributes when fetching the document from Elasticsearch
               #

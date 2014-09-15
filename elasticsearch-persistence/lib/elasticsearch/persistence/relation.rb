@@ -27,6 +27,7 @@ module Elasticsearch
           load
           @records
         end
+        alias :results :to_a
 
         def as_json(options = nil)
           to_a.as_json(options)
