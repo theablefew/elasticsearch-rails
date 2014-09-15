@@ -77,8 +77,17 @@ module Elasticsearch
               @gateway
             end
 
+            # Set the default sort key to be used in sort operations
+            #
+            def default_sort_key(field = nil)
+              @default_sort_key = field unless field.nil?
+              @default_sort_key
+            end
+
             private
 
+            # Return a Relation instance to chain queries
+            #
             def relation
               Relation.create(self)
             end
@@ -116,10 +125,14 @@ module Elasticsearch
             end
           end
 
+
+
           # Set up common attributes
           #
           attribute :created_at, DateTime, default: lambda { |o,a| Time.now.utc }
           attribute :updated_at, DateTime, default: lambda { |o,a| Time.now.utc }
+
+          default_sort_key :created_at
 
           attr_reader :hit
         end

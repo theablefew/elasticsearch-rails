@@ -8,7 +8,7 @@ module Elasticsearch
         end
 
         def first!
-          spawn.sort(created_at: :asc).spawn.size(1)
+          spawn.sort(Hash[default_sort_key, :asc]).spawn.size(1)
           self
         end
 
@@ -17,7 +17,7 @@ module Elasticsearch
         end
 
         def last!
-          spawn.sort(created_at: :desc).spawn.size(1)
+          spawn.sort(Hash[default_sort_key, :desc]).spawn.size(1)
           self
         end
 
