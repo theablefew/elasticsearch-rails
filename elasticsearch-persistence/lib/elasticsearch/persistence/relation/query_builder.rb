@@ -29,7 +29,7 @@ module Elasticsearch
       end
 
       def highlights
-        values[:highlights]
+        values[:highlight]
       end
 
       def size
@@ -86,7 +86,13 @@ module Elasticsearch
       end
 
       def build_highlights
-        structure.highlights highlights
+        structure.highlight do
+          structure.fields do
+            highlights.each do |highlight|
+              structure.set! highlight, extract_highlighter(highlight)
+            end
+          end
+        end
       end
 
       def build_filters
@@ -129,6 +135,12 @@ module Elasticsearch
           _and << arg if arg.class == String
         end
         _and.join(" AND ")
+      end
+
+      def extract_highlighter(highlighter)
+        Jbuilder.new do |highlight|
+          highlight.extract! highlighter
+        end
       end
 
       def extract_filters(name,opts = {})

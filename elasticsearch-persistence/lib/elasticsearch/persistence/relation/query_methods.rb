@@ -5,7 +5,7 @@ module Elasticsearch
     module QueryMethods
       extend ActiveSupport::Concern
 
-       MULTI_VALUE_METHODS = [:where, :order, :field, :aggregation, :facet, :search_option, :query_filter, :facet_filter]
+       MULTI_VALUE_METHODS = [:where, :order, :field, :highlight, :aggregation, :facet, :search_option, :query_filter, :facet_filter]
       SINGLE_VALUE_METHODS = [:size]
 
       class WhereChain
@@ -154,6 +154,15 @@ module Elasticsearch
         else
           [opts]
         end
+      end
+
+      def highlight(*args)
+        spawn.highlight!(*args)
+      end
+
+      def highlight!(*args)
+        self.highlight_values += args
+        self
       end
 
 
