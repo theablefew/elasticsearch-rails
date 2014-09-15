@@ -49,7 +49,9 @@ module Elasticsearch
             @_version
           end
 
-
+          def to_ary # :nodoc:
+            nil
+          end
 
           def to_s
             "#<#{self.class} #{attributes.to_hash.inspect.gsub(/:(\w+)=>/, '\1: ')}>"

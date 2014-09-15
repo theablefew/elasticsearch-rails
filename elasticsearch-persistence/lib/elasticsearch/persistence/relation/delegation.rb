@@ -87,9 +87,6 @@ module Elasticsearch
             if @klass.respond_to?(method)
               self.class.delegate_to_scoped_klass(method)
               scoping { @klass.public_send(method, *args, &block) }
-            elsif arel.respond_to?(method)
-              self.class.delegate method, :to => :arel
-              arel.public_send(method, *args, &block)
             else
               super
             end
@@ -110,8 +107,7 @@ module Elasticsearch
 
         def respond_to?(method, include_private = false)
           super || @klass.respond_to?(method, include_private) ||
-            array_delegable?(method) ||
-            arel.respond_to?(method, include_private)
+            array_delegable?(method)
         end
 
         protected
@@ -121,12 +117,11 @@ module Elasticsearch
         end
 
         def method_missing(method, *args, &block)
+          puts "Method Missing: #{method}"
           if @klass.respond_to?(method)
             scoping { @klass.public_send(method, *args, &block) }
           elsif array_delegable?(method)
             to_a.public_send(method, *args, &block)
-          elsif arel.respond_to?(method)
-            arel.public_send(method, *args, &block)
           else
             super
           end
