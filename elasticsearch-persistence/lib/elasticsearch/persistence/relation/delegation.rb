@@ -39,7 +39,7 @@ module Elasticsearch
         ].to_set # :nodoc:
 
         delegate :to_xml, :to_yaml, :length, :collect, :map, :each, :all?, :include?, :to_ary, :join, to: :to_a
-        delegate :aggregations, to: :to_a
+        delegate :aggregations, :total, to: :to_a
 
         delegate :mapping, :index_name, :document_type, :to => :klass
 
