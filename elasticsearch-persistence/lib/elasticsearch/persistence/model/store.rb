@@ -45,22 +45,39 @@ module Elasticsearch
           #
           def save(options={})
             return false unless valid?
+
             run_callbacks :save do
               options.update id: self.id
               options.update index: self._index if self._index
               options.update type:  self._type  if self._type
 
-              response = self.class.gateway.save(self, options)
 
-              self[:updated_at] = Time.now.utc
+              if new_record?
+                response = run_callbacks :create do
+                    response = self.class.gateway.save(self, options)
+                    self[:updated_at] = Time.now.utc
 
-              @_id       = response['_id']
-              @_index    = response['_index']
-              @_type     = response['_type']
-              @_version  = response['_version']
-              @persisted = true
+                    @_id       = response['_id']
+                    @_index    = response['_index']
+                    @_type     = response['_type']
+                    @_version  = response['_version']
+                    @persisted = true
 
-              response
+                    response
+                end
+              else
+                response = self.class.gateway.save(self, options)
+
+                self[:updated_at] = Time.now.utc
+
+                @_id       = response['_id']
+                @_index    = response['_index']
+                @_type     = response['_type']
+                @_version  = response['_version']
+                @persisted = true
+
+                response
+              end
             end
           end
 

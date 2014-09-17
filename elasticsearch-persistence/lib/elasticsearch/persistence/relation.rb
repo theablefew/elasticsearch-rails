@@ -47,7 +47,7 @@ module Elasticsearch
         end
 
         def create(*args, &block)
-          scoping { @klass.create(*args, &block) }
+          scoping { @klass.create!(*args, &block) }
         end
 
         def scoping

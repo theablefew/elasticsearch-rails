@@ -32,10 +32,12 @@ module Elasticsearch
           include ActiveModel::Serialization
           include ActiveModel::Serializers::JSON
           include ActiveModel::Validations
+          include ActiveModel::Validations::Callbacks
 
           include Virtus.model
 
           extend  ActiveModel::Callbacks
+
           define_model_callbacks :create, :save, :update, :destroy
           define_model_callbacks :find, :touch, only: :after
 
