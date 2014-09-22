@@ -5,13 +5,7 @@ require 'jbuilder'
 
 require 'rails/instrumentation/railtie' if defined?(Rails)
 
-require 'active_support'
-require 'active_support/dependencies/autoload'
-require 'active_support/concern'
-require 'active_support/core_ext/class/attribute'
-require 'active_support/core_ext/module/delegation'
-require 'active_support/deprecation'
-require 'active_support/inflector'
+require 'elasticsearch/rails_compatibility'
 
 require 'elasticsearch/persistence/version'
 

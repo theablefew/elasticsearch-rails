@@ -1,5 +1,3 @@
-require 'elasticsearch/per_thread_registry'
-
 module Elasticsearch
   module Persistence
     module Scoping
