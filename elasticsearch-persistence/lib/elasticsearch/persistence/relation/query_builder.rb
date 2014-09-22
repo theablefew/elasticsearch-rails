@@ -74,8 +74,14 @@ module Elasticsearch
         structure.query do
           structure.filtered do
             build_query
-            query_filters.each do |f|
-              structure.filter extract_filters(f[:name], f[:args])
+            structure.filter do
+              structure.and do
+                query_filters.each do |f|
+                  structure.child! do
+                    structure.set! f[:name], extract_filters(f[:name], f[:args])
+                  end
+                end
+              end
             end
           end
         end
@@ -145,7 +151,6 @@ module Elasticsearch
 
       def extract_filters(name,opts = {})
         Jbuilder.new do |filter|
-          filter.set! name do
             case
             when opts.is_a?(Hash)
                 filter.extract! opts, *opts.keys
@@ -154,7 +159,6 @@ module Elasticsearch
             else
               raise "#filter only accepts Hash or Array"
             end
-          end
         end
       end
 
