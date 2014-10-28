@@ -28,6 +28,10 @@ module Elasticsearch
         values[:field]
       end
 
+      def source
+        values[:source]
+      end
+
       def highlights
         values[:highlight]
       end
@@ -55,6 +59,7 @@ module Elasticsearch
         build_highlights unless highlights.blank?
         build_filters unless filters.blank?
         build_fields unless fields.blank?
+        build_source unless source.blank?
         build_aggregations unless aggregations.blank?
         structure.attributes!
       end
@@ -84,6 +89,13 @@ module Elasticsearch
               end
             end
           end
+        end
+      end
+
+      def build_source
+        structure._source do
+          structure.include source.first.delete(:include) if source.first.has_key? :include
+          structure.exclude source.first.delete(:exclude) if source.first.has_key? :exclude
         end
       end
 

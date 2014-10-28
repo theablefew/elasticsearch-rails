@@ -1,3 +1,5 @@
+require 'active_support/core_ext/module'
+
 module Elasticsearch
   module Persistence
     module QueryCache
