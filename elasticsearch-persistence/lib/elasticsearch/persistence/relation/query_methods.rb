@@ -108,10 +108,17 @@ module Elasticsearch
         spawn.aggregation!(name, options, &block)
       end
 
-      alias :facet :aggregation
-
       def aggregation!(name, options = {}, &block)
         self.aggregation_values += [{name: name, args: options}]
+        self
+      end
+
+      def facet(name, options = {}, &block)
+        spawn.facet!(name, options, &block)
+      end
+
+      def facet!(name, options = {}, &block)
+        self.facet_values += [{name: name, args: options}]
         self
       end
 

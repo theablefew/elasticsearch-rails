@@ -9,7 +9,7 @@ module Elasticsearch
       end
 
       def facets
-        aggregations
+        values[:facet]
       end
 
       def aggregations
@@ -61,6 +61,7 @@ module Elasticsearch
         build_fields unless fields.blank?
         build_source unless source.blank?
         build_aggregations unless aggregations.blank?
+        build_facets unless facets.blank?
         structure.attributes!
       end
 
@@ -120,9 +121,17 @@ module Elasticsearch
       end
 
       def build_aggregations
-        structure.facets do
+        structure.aggregations do
           aggregations.each do |agg|
             structure.set! agg[:name], facet(agg[:name], agg[:args])
+          end
+        end
+      end
+
+      def build_facets
+        structure.facets do
+          facets.each do |facet|
+            structure.set! facet[:name], facet(facet[:name], facet[:args])
           end
         end
       end

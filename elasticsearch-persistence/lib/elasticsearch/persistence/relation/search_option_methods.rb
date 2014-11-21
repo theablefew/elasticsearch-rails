@@ -29,7 +29,7 @@ module Elasticsearch
       end
 
       def search_options!(*args)
-        self.search_option_values = args
+        self.search_option_values += args
         self
       end
 
