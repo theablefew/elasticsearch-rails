@@ -5,7 +5,11 @@ module Elasticsearch
     module QueryMethods
       extend ActiveSupport::Concern
 
-       MULTI_VALUE_METHODS = [:where, :order, :field, :highlight, :source, :aggregation, :facet, :search_option, :query_filter, :facet_filter]
+
+       MULTI_VALUE_METHODS = [:where, :order, :field, :highlight, :source,
+                              :must_not, :should, :query_string,
+                              :aggregation, :facet, :search_option,
+                              :query_filter, :facet_filter]
       SINGLE_VALUE_METHODS = [:size]
 
       class WhereChain
@@ -80,6 +84,8 @@ module Elasticsearch
         end
       end
 
+      alias :must :where
+
       def where!(opts, *rest) # :nodoc:
         if opts == :chain
           WhereChain.new(self)
@@ -92,6 +98,66 @@ module Elasticsearch
           self
         end
       end
+
+      def query_string(opts = :chain, *rest)
+        if opts == :chain
+          WhereChain.new(spawn)
+        elsif opts.blank?
+          self
+        else
+          spawn.query_string!(opts, *rest)
+        end
+      end
+
+      def query_string!(opts, *rest) # :nodoc:
+        if opts == :chain
+          WhereChain.new(self)
+        else
+          self.query_string_values += build_where(opts, rest)
+          self
+        end
+      end
+
+      def must_not(opts = :chain, *rest)
+        if opts == :chain
+          WhereChain.new(spawn)
+        elsif opts.blank?
+          self
+        else
+          spawn.must_not!(opts, *rest)
+        end
+      end
+
+      alias :where_not :must_not
+
+      def must_not!(opts, *rest)
+        if opts == :chain
+          WhereChain.new(self)
+        else
+          self.must_not_values += build_where(opts, rest)
+          self
+        end
+      end
+
+      def should(opts = :chain, *rest)
+        if opts == :chain
+          WhereChain.new(spawn)
+        elsif opts.blank?
+          self
+        else
+          spawn.should!(opts, *rest)
+        end
+      end
+
+      def should!(opts, *rest)
+        if opts == :chain
+          WhereChain.new(self)
+        else
+          self.should_values += build_where(opts, rest)
+          self
+        end
+      end
+
 
 
       def filter(name, options = {}, &block)

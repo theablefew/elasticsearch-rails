@@ -21,7 +21,19 @@ module Elasticsearch
       end
 
       def query
-        compact_where(values[:where])
+        @query ||= compact_where(values[:where])
+      end
+
+      def query_strings
+        @query_string ||= compact_where(values[:query_string], bool: false)
+      end
+
+      def must_nots
+        @must_nots ||= compact_where(values[:must_not])
+      end
+
+      def shoulds
+        @shoulds ||= compact_where(values[:should])
       end
 
       def fields
@@ -67,12 +79,26 @@ module Elasticsearch
 
       private
 
+      def missing_bool_query?
+        query.nil? && must_nots.nil? && shoulds.nil?
+      end
+
+      def missing_query_string?
+        query_strings.nil?
+      end
+
       def build_query
-        return if query.nil?
+        return if missing_bool_query? && missing_query_string?
         structure.query do
+          structure.bool do
+            structure.must query
+            structure.must_not must_nots unless must_nots.nil?
+            structure.should shoulds unless shoulds.nil?
+          end unless missing_bool_query?
+
           structure.query_string do
-            structure.query query
-          end
+            structure.query query_strings
+          end unless query_strings.nil?
         end
       end
 
@@ -153,9 +179,24 @@ module Elasticsearch
         [:size].inject(Hash.new) { |h,k| h[k] = self.send(k) unless self.send(k).nil?; h}
       end
 
-      def compact_where(q)
+      def compact_where(q, opts = {bool:true})
         return if q.nil?
+        if opts.delete(:bool)
+          as_must(q)
+        else
+          as_query_string(q)
+        end
+      end
 
+      def as_must(q)
+        _must = []
+        q.each do |arg|
+          arg.each_pair { |k,v| _must << {term: Hash[k,v]} } if arg.class == Hash
+        end
+        _must.length == 1 ? _must.first : _must
+      end
+
+      def as_query_string(q)
         _and = []
         q.each do |arg|
           arg.each_pair { |k,v|  _and << "#{k}:#{v}" } if arg.class == Hash
@@ -163,6 +204,8 @@ module Elasticsearch
         end
         _and.join(" AND ")
       end
+
+
 
       def extract_highlighter(highlighter)
         Jbuilder.new do |highlight|
