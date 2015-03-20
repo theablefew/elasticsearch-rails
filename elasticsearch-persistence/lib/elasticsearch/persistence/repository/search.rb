@@ -136,7 +136,7 @@ module Elasticsearch
 
             url        = path
 
-            if host.has_key? :host
+            unless host.is_a? String
               host_parts = "#{host[:protocol].to_s}://#{host[:host]}"
               host_parts = "#{host_parts}:#{host[:port]}" if host[:port]
             else
