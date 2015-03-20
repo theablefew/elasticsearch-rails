@@ -135,7 +135,16 @@ module Elasticsearch
             params[:fields] = Elasticsearch::API::Utils.__listify(params[:fields]) if params[:fields]
 
             url        = path
-            trace_url  = "http://#{host}/#{url}?#{::Faraday::Utils::ParamsHash[params].to_query}"
+
+            if host.has_key? :host
+              host_parts = "#{host[:protocol].to_s}://#{host[:host]}"
+              host_parts = "#{host_parts}:#{host[:port]}" if host[:port]
+            else
+              host_parts = host
+            end
+
+
+            trace_url  = "#{host_parts}/#{url}?#{::Faraday::Utils::ParamsHash[params].to_query}"
             trace_body = body ? " -d '#{body.to_json}'" : ''
 
             Rainbow("curl -X #{method.to_s.upcase} '#{CGI.unescape(trace_url)}'#{trace_body}\n").color :white
