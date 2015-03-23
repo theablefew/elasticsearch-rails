@@ -240,9 +240,9 @@ module Elasticsearch
       end
 
       def extract_filter_arguments_from_array(element, opts)
-        element.child! do
-          opts.each do |opt|
-            element.extract! opt, *opt.keys
+        opts.each do |opt|
+          element.child! do
+          element.extract! opt , *opt.keys
           end
         end
       end
