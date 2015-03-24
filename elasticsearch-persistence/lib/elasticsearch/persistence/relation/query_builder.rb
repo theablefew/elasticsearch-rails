@@ -192,6 +192,7 @@ module Elasticsearch
         _must = []
         q.each do |arg|
           arg.each_pair { |k,v| _must << {term: Hash[k,v]} } if arg.class == Hash
+          _must << {term: Hash[[arg.split(/:/).collect(&:strip)]]} if arg.class == String
         end
         _must.length == 1 ? _must.first : _must
       end
