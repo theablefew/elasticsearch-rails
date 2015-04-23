@@ -69,7 +69,7 @@ module Elasticsearch
           def find_in_batches(options={}, &block)
             return to_enum(:find_in_batches, options) unless block_given?
 
-            search_params = options.extract!(
+            search_params = options.slice(
               :index,
               :type,
               :scroll,
@@ -91,8 +91,11 @@ module Elasticsearch
 
             scroll = search_params.delete(:scroll) || '5m'
 
+            puts "Search: #{search_params}".color :green
+
             body = options
 
+            puts "BODY: #{body}".color :red
             # Get the initial scroll_id
             #
             response = gateway.client.search( { index: gateway.index_name,
