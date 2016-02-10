@@ -91,8 +91,6 @@ module Elasticsearch
 
             scroll = search_params.delete(:scroll) || '5m'
 
-            puts "Search: #{search_params}".color :green
-
             body = options
 
             puts "BODY: #{body}".color :red

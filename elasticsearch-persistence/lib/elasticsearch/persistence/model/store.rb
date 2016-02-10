@@ -248,6 +248,22 @@ module Elasticsearch
           def new_record?
             !persisted? && !destroyed?
           end
+
+          def becomes(klass)
+              became = klass.new(attributes)
+              changed_attributes = @changed_attributes if defined?(@changed_attributes)
+              became.instance_variable_set("@changed_attributes", changed_attributes || {})
+              became.instance_variable_set("@new_record", new_record?)
+              became.instance_variable_set("@destroyed", destroyed?)
+              became.instance_variable_set("@errors", errors)
+              became.instance_variable_set("@persisted", persisted?)
+              became.instance_variable_set("@_id", _id)
+              became.instance_variable_set("@_version", _version)
+              became.instance_variable_set("@_index", _index)
+              became.instance_variable_set("@_type", _type)
+              became
+            end
+
         end
       end
 
