@@ -8,8 +8,8 @@ module Elasticsearch
 
        MULTI_VALUE_METHODS = [:where, :order, :field, :highlight, :source,
                               :must_not, :should, :query_string,
-                              :aggregation, :facet, :search_option,
-                              :query_filter, :facet_filter]
+                              :aggregation, :search_option,
+                              :query_filter]
       SINGLE_VALUE_METHODS = [:size]
 
       class WhereChain
@@ -49,6 +49,8 @@ module Elasticsearch
         CODE
       end
 
+
+
       def order(*args)
         check_if_method_has_arguments!(:order, args)
         spawn.order!(*args)
@@ -62,6 +64,9 @@ module Elasticsearch
       alias :sort :order
 
 
+
+
+
       def size(args)
         check_if_method_has_arguments!(:order, args)
         spawn.size!(args)
@@ -73,6 +78,9 @@ module Elasticsearch
       end
 
       alias :limit :size
+
+
+
 
       def where(opts = :chain, *rest)
         if opts == :chain
@@ -99,6 +107,9 @@ module Elasticsearch
         end
       end
 
+
+
+
       def query_string(opts = :chain, *rest)
         if opts == :chain
           WhereChain.new(spawn)
@@ -117,6 +128,9 @@ module Elasticsearch
           self
         end
       end
+
+
+
 
       def must_not(opts = :chain, *rest)
         if opts == :chain
@@ -139,6 +153,9 @@ module Elasticsearch
         end
       end
 
+
+
+
       def should(opts = :chain, *rest)
         if opts == :chain
           WhereChain.new(spawn)
@@ -160,6 +177,7 @@ module Elasticsearch
 
 
 
+
       def filter(name, options = {}, &block)
         spawn.filter!(name, options, &block)
       end
@@ -168,6 +186,8 @@ module Elasticsearch
         self.query_filter_values += [{name: name, args: options}]
         self
       end
+
+
 
 
       def aggregation(name, options = {}, &block)
@@ -179,14 +199,8 @@ module Elasticsearch
         self
       end
 
-      def facet(name, options = {}, &block)
-        spawn.facet!(name, options, &block)
-      end
 
-      def facet!(name, options = {}, &block)
-        self.facet_values += [{name: name, args: options}]
-        self
-      end
+
 
       def field(*args)
         spawn.field!(*args)
@@ -198,6 +212,9 @@ module Elasticsearch
         self
       end
 
+
+
+
       def source(*args)
         spawn.source!(*args)
       end
@@ -207,9 +224,15 @@ module Elasticsearch
         self
       end
 
+
+
+
       def has_field?(field)
         spawn.filter(:exists, {field: field})
       end
+
+
+
 
       def bind(value)
         spawn.bind!(value)

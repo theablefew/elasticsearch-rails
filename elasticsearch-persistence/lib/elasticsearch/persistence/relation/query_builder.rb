@@ -8,10 +8,6 @@ module Elasticsearch
         @values = values
       end
 
-      def facets
-        values[:facet]
-      end
-
       def aggregations
         values[:aggregation]
       end
@@ -73,7 +69,6 @@ module Elasticsearch
         build_fields unless fields.blank?
         build_source unless source.blank?
         build_aggregations unless aggregations.blank?
-        build_facets unless facets.blank?
         structure.attributes!
       end
 
@@ -149,15 +144,7 @@ module Elasticsearch
       def build_aggregations
         structure.aggregations do
           aggregations.each do |agg|
-            structure.set! agg[:name], facet(agg[:name], agg[:args])
-          end
-        end
-      end
-
-      def build_facets
-        structure.facets do
-          facets.each do |facet|
-            structure.set! facet[:name], facet(facet[:name], facet[:args])
+            structure.set! agg[:name], aggregation(agg[:name], agg[:args])
           end
         end
       end
@@ -227,15 +214,15 @@ module Elasticsearch
         end
       end
 
-      def facet(name, opts = {})
-        Jbuilder.new do |facet|
+      def aggregation(name, opts = {})
+        Jbuilder.new do |agg|
           case
           when opts.is_a?(Hash)
-              facet.extract! opts, *opts.keys
+              agg.extract! opts, *opts.keys
           when opts.is_a?(Array)
-              extract_filter_arguments_from_array(facet, opts)
+              extract_filter_arguments_from_array(agg, opts)
           else
-            raise "#facet only accepts Hash or Array"
+            raise "#aggregation only accepts Hash or Array"
           end
         end
       end
