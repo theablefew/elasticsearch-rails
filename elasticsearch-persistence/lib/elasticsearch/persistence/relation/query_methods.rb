@@ -255,7 +255,7 @@ module Elasticsearch
 
           [other.empty? ? opts : ([opts] + other)]
         when Hash
-          [opts]
+          [other.empty? ? opts : ([opts] + other)]
         else
           [opts]
         end

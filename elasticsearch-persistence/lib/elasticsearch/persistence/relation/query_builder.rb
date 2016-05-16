@@ -60,6 +60,10 @@ module Elasticsearch
         build_search_options
       end
 
+      def query_string_options
+        @query_string_options || {}
+      end
+
       def to_elastic
         @structure = Jbuilder.new ignore_nil: true
         query_filters ? build_filtered_query : build_query
@@ -92,6 +96,7 @@ module Elasticsearch
           end unless missing_bool_query?
 
           structure.query_string do
+            structure.extract! query_string_options, *query_string_options.keys
             structure.query query_strings
           end unless query_strings.nil?
         end
@@ -171,7 +176,7 @@ module Elasticsearch
         if opts.delete(:bool)
           as_must(q)
         else
-          as_query_string(q)
+          as_query_string(q.flatten)
         end
       end
 
@@ -186,9 +191,12 @@ module Elasticsearch
 
       def as_query_string(q)
         _and = []
+
+        @query_string_options = q.pop if q.length > 1
+
         q.each do |arg|
-          arg.each_pair { |k,v|  _and << "#{k}:#{v}" } if arg.class == Hash
-          _and << arg if arg.class == String
+          arg.each_pair { |k,v|  _and << "(#{k}:#{v})" } if arg.class == Hash
+          _and << "(#{arg})" if arg.class == String
         end
         _and.join(" AND ")
       end
