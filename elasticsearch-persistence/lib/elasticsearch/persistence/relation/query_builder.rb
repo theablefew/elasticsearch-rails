@@ -66,7 +66,7 @@ module Elasticsearch
 
       def to_elastic
         @structure = Jbuilder.new ignore_nil: true
-        query_filters ? build_filtered_query : build_query
+        build_query
         build_sort unless sort.blank?
         build_highlights unless highlights.blank?
         build_filters unless filters.blank?
@@ -93,7 +93,12 @@ module Elasticsearch
             structure.must query
             structure.must_not must_nots unless must_nots.nil?
             structure.should shoulds unless shoulds.nil?
+
+            build_filtered_query if query_filters
+
           end unless missing_bool_query?
+
+
 
           structure.query_string do
             structure.extract! query_string_options, *query_string_options.keys
@@ -103,16 +108,11 @@ module Elasticsearch
       end
 
       def build_filtered_query
-        structure.query do
-          structure.filtered do
-            build_query
-            structure.filter do
-              structure.and do
-                query_filters.each do |f|
-                  structure.child! do
-                    structure.set! f[:name], extract_filters(f[:name], f[:args])
-                  end
-                end
+        structure.filter do
+          structure.and do
+            query_filters.each do |f|
+              structure.child! do
+                structure.set! f[:name], extract_filters(f[:name], f[:args])
               end
             end
           end
