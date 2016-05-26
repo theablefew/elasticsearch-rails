@@ -86,17 +86,21 @@ module Elasticsearch
         query_strings.nil?
       end
 
+      def missing_query_filter?
+        query_filters.nil?
+      end
+
       def build_query
-        return if missing_bool_query? && missing_query_string?
+        return if missing_bool_query? && missing_query_string? && missing_query_filter?
         structure.query do
           structure.bool do
-            structure.must query
+            structure.must query unless missing_bool_query?
             structure.must_not must_nots unless must_nots.nil?
             structure.should shoulds unless shoulds.nil?
 
             build_filtered_query if query_filters
 
-          end unless missing_bool_query?
+          end unless missing_bool_query? && missing_query_filter?
 
 
 
