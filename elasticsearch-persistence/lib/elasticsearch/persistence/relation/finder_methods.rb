@@ -26,7 +26,7 @@ module Elasticsearch
         end
 
         def count!
-          spawn.search_type(:count).to_a.total
+          spawn.size(0).to_a.total
         end
 
       end

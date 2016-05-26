@@ -80,7 +80,7 @@ module Elasticsearch
         #
         def count(query_or_definition=nil, options={})
           query_or_definition ||= { query: { match_all: {} } }
-          response = search query_or_definition, options.update(search_type: 'count')
+          response = search query_or_definition, options.update(size: 0)
           response.response.hits.total
         end
 
