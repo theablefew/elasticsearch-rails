@@ -103,7 +103,6 @@ module Elasticsearch
           end unless missing_bool_query? && missing_query_filter?
 
 
-
           structure.query_string do
             structure.extract! query_string_options, *query_string_options.keys
             structure.query query_strings
