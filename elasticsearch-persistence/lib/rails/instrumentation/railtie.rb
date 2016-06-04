@@ -13,17 +13,16 @@ module Elasticsearch
         end
 
         ActiveSupport::Notifications.subscribe 'query.elasticsearch' do |name, start, finish, id, payload|
-          ::Rails.logger.info(["   #{payload[:name]}".bright, "(#{time_diff(start,finish)}ms)",payload[:query]].join(" ").color(:yellow))
+          ::Rails.logger.info(["  #{payload[:name]}".bright, "(#{time_diff(start,finish)}ms)",payload[:query]].join(" ").color(:yellow))
         end
 
         ActiveSupport::Notifications.subscribe 'cache.query.elasticsearch' do |name, start, finish, id, payload|
-          ::Rails.logger.info(["   #{payload[:name]}".bright, "CACHE".color(:magenta).bright ,"(#{time_diff(start,finish)}ms)", payload[:query]].join(" ").color(:yellow))
+          ::Rails.logger.info(["  #{payload[:name]}".bright, "CACHE".color(:mediumpurple).bright ,"(#{time_diff(start,finish)}ms)", payload[:query]].join(" ").color(:yellow))
         end
 
         initializer 'elasticsearch_persistence.set_defaults' do
           config.elasticsearch_cache_store = :redis_store
           config.elasticsearch_expire_cache_in = 15.minutes
-          #config.goodyear_perform_caching = true
         end
 
       end
