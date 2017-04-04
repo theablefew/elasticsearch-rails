@@ -91,7 +91,7 @@ module Elasticsearch
             # Return a Relation instance to chain queries
             #
             def relation
-              Relation.create(self)
+              Relation.create(self, {})
             end
 
           end

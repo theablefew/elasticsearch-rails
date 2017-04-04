@@ -50,7 +50,7 @@ module Elasticsearch
           @other    = other
         end
 
-        NORMAL_VALUES = [:where, :first, :last]
+        NORMAL_VALUES = [:where, :first, :last, :filter]
 
         def normal_values
           NORMAL_VALUES
@@ -63,9 +63,14 @@ module Elasticsearch
             # expensive), most of the time the value is going to be `nil` or `.blank?`, the only catch is that
             # `false.blank?` returns `true`, so there needs to be an extra check so that explicit `false` values
             # don't fall through the cracks.
+
             unless value.nil? || (value.blank? && false != value)
               if name == :select
                 relation._select!(*value)
+              elsif name == :filter
+                values.each do |v|
+                  relation.send("#{name}!", v.first, v.last)
+                end
               else
                 relation.send("#{name}!", *value)
               end
@@ -74,7 +79,7 @@ module Elasticsearch
 
           merge_multi_values
           merge_single_values
-          merge_joins
+          #merge_joins
 
           relation
         end
@@ -109,28 +114,19 @@ module Elasticsearch
           lhs_wheres = relation.where_values
           rhs_wheres = values[:where] || []
 
-          lhs_binds  = relation.bind_values
-          rhs_binds  = values[:bind] || []
+          lhs_filters = relation.filter_values
+          rhs_filters = values[:filter] || []
 
           removed, kept = partition_overwrites(lhs_wheres, rhs_wheres)
 
           where_values = kept + rhs_wheres
-          bind_values  =  rhs_binds
 
-          #conn = relation.klass.connection
-          #bv_index = 0
-          #where_values.map! do |node|
-            #if Arel::Nodes::Equality === node && Arel::Nodes::BindParam === node.right
-              #substitute = conn.substitute_at(bind_values[bv_index].first, bv_index)
-              #bv_index += 1
-              #Arel::Nodes::Equality.new(node.left, substitute)
-            #else
-              #node
-            #end
-          #end
+          filters_removed, filters_kept = partition_overwrites(lhs_wheres, rhs_wheres)
+          filter_values =  rhs_filters
 
-          relation.where_values = where_values
-          relation.bind_values  = bind_values
+
+          relation.where_values = where_values.empty? ? nil : where_values
+          relation.filter_values = filter_values.empty? ? nil : filter_values
 
           if values[:reordering]
             # override any order specified in the original relation

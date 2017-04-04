@@ -2,7 +2,7 @@ module Elasticsearch
   module Persistence
     class Relation
 
-        MULTI_VALUE_METHODS  = [:order, :where, :bind, :extending, :unscope]
+        MULTI_VALUE_METHODS  = [:order, :where, :filter, :bind, :extending, :unscope]
         SINGLE_VALUE_METHODS = [:limit, :offset, :routing, :size]
 
         INVALID_METHODS_FOR_DELETE_ALL = [:limit, :offset]
@@ -15,6 +15,7 @@ module Elasticsearch
         alias :model :klass
         alias :loaded? :loaded
 
+        delegate :blank?, :empty?, :any?, :many?, to: :results
 
         def initialize(klass, values={})
             @klass  = klass
@@ -37,15 +38,6 @@ module Elasticsearch
           query_builder.to_elastic
         end
 
-        def empty?
-        end
-
-        def any?
-        end
-
-        def many?
-        end
-
         def create(*args, &block)
           scoping { @klass.create!(*args, &block) }
         end
@@ -55,9 +47,6 @@ module Elasticsearch
           yield
         ensure
           klass.current_scope = previous
-        end
-
-        def blank?
         end
 
         def load

@@ -53,7 +53,7 @@ module Elasticsearch
       end
 
       def query_filters
-        values[:query_filter]
+        values[:filter]
       end
 
       def search_options
@@ -69,7 +69,7 @@ module Elasticsearch
         build_query
         build_sort unless sort.blank?
         build_highlights unless highlights.blank?
-        build_filters unless filters.blank?
+      #  build_filters unless filters.blank?
         build_fields unless fields.blank?
         build_source unless source.blank?
         build_aggregations unless aggregations.blank?
