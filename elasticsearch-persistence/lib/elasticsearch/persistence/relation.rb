@@ -57,6 +57,8 @@ module Elasticsearch
         alias :fetch :load
 
         def exec_queries
+          # Run safety callback
+
           @records = @klass.fetch_results(query_builder)
 
           @loaded = true

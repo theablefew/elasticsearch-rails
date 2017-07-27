@@ -6,6 +6,7 @@ require 'virtus'
 #require 'elasticsearch/persistence'
 
 require 'elasticsearch/persistence/model/base'
+require 'elasticsearch/persistence/model/callbacks'
 require 'elasticsearch/persistence/model/errors'
 require 'elasticsearch/persistence/model/store'
 require 'elasticsearch/persistence/model/find'
@@ -42,6 +43,7 @@ module Elasticsearch
           define_model_callbacks :find, :touch, only: :after
 
 
+          extend  Elasticsearch::Persistence::Model::Callbacks::ClassMethods
           include Elasticsearch::Persistence::Model::Base::InstanceMethods
 
           extend  Elasticsearch::Persistence::Model::Store::ClassMethods
