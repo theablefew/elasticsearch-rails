@@ -4,6 +4,7 @@ module Elasticsearch
       module FinderMethods
 
         def first
+          return results.first if @loaded
           spawn.first!.to_a.first
         end
 
@@ -13,6 +14,7 @@ module Elasticsearch
         end
 
         def last
+          return results.last if @loaded
           spawn.last!.to_a.first
         end
 

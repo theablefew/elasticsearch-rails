@@ -12,7 +12,7 @@ module Elasticsearch
         class_methods do
 
           def circuit_breaker_callbacks
-            instance_variable_get("@_circuit_breaker_callbacks")
+            instance_variable_get("@_circuit_breaker_callbacks") || []
           end
 
           def query_must_have(*args, &block)
