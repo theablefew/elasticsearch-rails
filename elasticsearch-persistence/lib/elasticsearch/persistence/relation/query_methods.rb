@@ -9,7 +9,7 @@ module Elasticsearch
        MULTI_VALUE_METHODS = [:where, :order, :field, :highlight, :source,
                               :must_not, :should, :query_string,
                               :aggregation, :search_option,
-                              :filter]
+                              :filter, :skip_callbacks]
       SINGLE_VALUE_METHODS = [:size]
 
       class WhereChain
@@ -64,11 +64,19 @@ module Elasticsearch
       alias :sort :order
 
 
+      def skip_callbacks(*args)
+        spawn.skip_callbacks!(*args)
+      end
 
+      def skip_callbacks!(*args)
+        self.skip_callbacks_values += args
+        self
+      end
+
+      alias :sort :order
 
 
       def size(args)
-        check_if_method_has_arguments!(:order, args)
         spawn.size!(args)
       end
 

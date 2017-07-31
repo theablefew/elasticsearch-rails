@@ -2,7 +2,7 @@ module Elasticsearch
   module Persistence
     class Relation
 
-        MULTI_VALUE_METHODS  = [:order, :where, :filter, :bind, :extending, :unscope]
+        MULTI_VALUE_METHODS  = [:order, :where, :filter, :bind, :extending, :unscope, :skip_callbacks]
         SINGLE_VALUE_METHODS = [:limit, :offset, :routing, :size]
 
         INVALID_METHODS_FOR_DELETE_ALL = [:limit, :offset]
@@ -67,6 +67,7 @@ module Elasticsearch
           # Run safety callback
           klass.circuit_breaker_callbacks.each do |cb|
             current_scope_values = self.send("#{cb[:options][:in]}_values")
+            next if skip_callbacks_values.include? cb[:name]
             valid = if cb[:callback].nil?
               current_scope_values.collect(&:keys).flatten.include? cb[:name]
             else
