@@ -24,6 +24,10 @@ module Elasticsearch
             @loaded = false
         end
 
+        def build(*args)
+         @klass.new *args
+        end
+
         def to_a
           load
           @records
@@ -39,7 +43,7 @@ module Elasticsearch
         end
 
         def create(*args, &block)
-          scoping { @klass.create!(*args, &block) }
+           scoping { @klass.create!(*args, &block) }
         end
 
         def scoping
@@ -56,8 +60,21 @@ module Elasticsearch
         end
         alias :fetch :load
 
+        def delete(opts=nil)
+        end
+
         def exec_queries
           # Run safety callback
+          klass.circuit_breaker_callbacks.each do |cb|
+            current_scope_values = self.send("#{cb[:options][:in]}_values")
+            valid = if cb[:callback].nil?
+              current_scope_values.collect(&:keys).flatten.include? cb[:name]
+            else
+              cb[:callback].call(current_scope_values.collect(&:keys).flatten, current_scope_values)
+            end
+
+            raise Elasticsearch::Persistence::Model::QueryOptionMissing, "#{cb[:name]} #{cb[:options][:message]}" unless valid
+          end
 
           @records = @klass.fetch_results(query_builder)
 

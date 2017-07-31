@@ -43,7 +43,7 @@ module Elasticsearch
           define_model_callbacks :find, :touch, only: :after
 
 
-          extend  Elasticsearch::Persistence::Model::Callbacks::ClassMethods
+          include  Elasticsearch::Persistence::Model::Callbacks
           include Elasticsearch::Persistence::Model::Base::InstanceMethods
 
           extend  Elasticsearch::Persistence::Model::Store::ClassMethods

@@ -121,6 +121,7 @@ module Elasticsearch
       extend ActiveSupport::Autoload
 
       autoload :GatewayDelegation
+      autoload :Callbacks
     end
 
     module Repository

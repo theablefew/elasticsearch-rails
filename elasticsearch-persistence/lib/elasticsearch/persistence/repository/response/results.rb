@@ -75,6 +75,9 @@ module Elasticsearch
             @results
           end
 
+          def delete(opts=nil)
+          end
+
           # Access the response returned from Elasticsearch by the client
           #
           # @example Access the aggregations in the response
