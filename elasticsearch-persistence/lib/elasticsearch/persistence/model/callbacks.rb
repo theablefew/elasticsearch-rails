@@ -5,12 +5,14 @@ module Elasticsearch
 
         extend ActiveSupport::Concern
 
+        included do
+          instance_variable_set("@_circuit_breaker_callbacks", [])
+        end
 
         class_methods do
-          @@_circuit_breaker_callbacks = []
 
           def circuit_breaker_callbacks
-            @@_circuit_breaker_callbacks
+            instance_variable_get("@_circuit_breaker_callbacks")
           end
 
           def query_must_have(*args, &block)
@@ -20,7 +22,7 @@ module Elasticsearch
 
             options[:message] = "does not exist in #{options[:in]}." unless options.has_key? :message
 
-            @@_circuit_breaker_callbacks << {name: args.first, options: options, callback: cb}
+            instance_variable_get("@_circuit_breaker_callbacks") << {name: args.first, options: options, callback: cb}
 
           end
         end
