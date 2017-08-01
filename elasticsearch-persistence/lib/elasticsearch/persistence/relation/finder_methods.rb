@@ -5,7 +5,7 @@ module Elasticsearch
 
         def first
           return results.first if @loaded
-          spawn.first!.to_a.first
+          spawn.first!.results.first
         end
 
         def first!
@@ -15,7 +15,7 @@ module Elasticsearch
 
         def last
           return results.last if @loaded
-          spawn.last!.to_a.first
+          spawn.last!.results.first
         end
 
         def last!
