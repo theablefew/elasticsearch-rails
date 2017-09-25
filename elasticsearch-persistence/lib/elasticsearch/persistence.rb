@@ -34,6 +34,7 @@ require 'elasticsearch/persistence/relation/delegation'
 require 'elasticsearch/persistence/relation/merger'
 
 require 'elasticsearch/persistence/relation'
+require 'elasticsearch/persistence/null_relation'
 
 
 module Elasticsearch
@@ -103,6 +104,7 @@ module Elasticsearch
       autoload :Repository
       autoload :Scoping
       autoload :Relation
+      autoload :NullRelation
       autoload :Querying
       autoload :Inheritence
       autoload :QueryCache
@@ -121,7 +123,7 @@ module Elasticsearch
       extend ActiveSupport::Autoload
 
       autoload :GatewayDelegation
-      autoload :Callbacks
+      #autoload :Callbacks
     end
 
     module Repository

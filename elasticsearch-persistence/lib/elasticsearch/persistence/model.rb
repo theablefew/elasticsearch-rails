@@ -27,6 +27,7 @@ module Elasticsearch
     #
     module Model
       def self.included(base)
+
         base.class_eval do
           include ActiveModel::Naming
           include ActiveModel::Conversion
@@ -36,14 +37,15 @@ module Elasticsearch
           include ActiveModel::Validations::Callbacks
 
           include Virtus.model
-
-          extend  ActiveModel::Callbacks
+          extend ActiveModel::Callbacks
 
           define_model_callbacks :create, :save, :update, :destroy
           define_model_callbacks :find, :touch, only: :after
 
 
-          include  Elasticsearch::Persistence::Model::Callbacks
+
+          include Elasticsearch::Persistence::Model::Callbacks
+
           include Elasticsearch::Persistence::Model::Base::InstanceMethods
 
           extend  Elasticsearch::Persistence::Model::Store::ClassMethods
@@ -60,6 +62,7 @@ module Elasticsearch
 
 
           class << self
+
             # Re-define the Virtus' `attribute` method, to configure Elasticsearch mapping as well
             #
             def attribute(name, type=nil, options={}, &block)

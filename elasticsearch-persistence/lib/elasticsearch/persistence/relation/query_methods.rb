@@ -9,7 +9,7 @@ module Elasticsearch
        MULTI_VALUE_METHODS = [:where, :order, :field, :highlight, :source,
                               :must_not, :should, :query_string,
                               :aggregation, :search_option,
-                              :filter, :skip_callbacks]
+                              :filter, :extending, :skip_callbacks]
       SINGLE_VALUE_METHODS = [:size]
 
       class WhereChain
@@ -288,6 +288,25 @@ module Elasticsearch
 
       def none! # :nodoc:
         extending!(NullRelation)
+      end
+
+
+      def extending(*modules, &block)
+        if modules.any? || block
+          spawn.extending!(*modules, &block)
+        else
+          self
+        end
+      end
+
+      def extending!(*modules, &block) # :nodoc:
+        modules << Module.new(&block) if block
+        modules.flatten!
+
+        self.extending_values += modules
+        extend(*extending_values) if extending_values.any?
+
+        self
       end
 
       private

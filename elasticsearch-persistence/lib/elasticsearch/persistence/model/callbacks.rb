@@ -5,11 +5,15 @@ module Elasticsearch
 
         extend ActiveSupport::Concern
 
+
         included do
+
           instance_variable_set("@_circuit_breaker_callbacks", [])
+
         end
 
         class_methods do
+
 
           def circuit_breaker_callbacks
             instance_variable_get("@_circuit_breaker_callbacks") || []
