@@ -21,7 +21,7 @@ module Elasticsearch
           #
           def initialize(repository, response, options={})
             @repository = repository
-            @response   = Hashie::Mash.new(response)
+            @response   = Elasticsearch::Persistence::Model::HashWrapper.new(response)
             @options    = options
             @loaded     = false
           end

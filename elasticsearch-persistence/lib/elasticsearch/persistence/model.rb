@@ -10,7 +10,7 @@ require 'elasticsearch/persistence/model/callbacks'
 require 'elasticsearch/persistence/model/errors'
 require 'elasticsearch/persistence/model/store'
 require 'elasticsearch/persistence/model/find'
-
+require 'elasticsearch/persistence/model/hash_wrapper'
 
 module Elasticsearch
   module Persistence
@@ -125,7 +125,7 @@ module Elasticsearch
               # Store the "hit" information (highlighting, score, ...)
               #
               object.instance_variable_set :@hit,
-                 Hashie::Mash.new(document.except('_index', '_type', '_id', '_version', '_source'))
+                 HashWrapper.new(document.except('_index', '_type', '_id', '_version', '_source'))
 
               object.instance_variable_set(:@persisted, true)
               object
