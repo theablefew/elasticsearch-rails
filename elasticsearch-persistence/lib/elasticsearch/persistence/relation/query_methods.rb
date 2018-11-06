@@ -9,7 +9,7 @@ module Elasticsearch
        MULTI_VALUE_METHODS = [:where, :order, :field, :highlight, :source,
                               :must_not, :should, :query_string,
                               :aggregation, :search_option,
-                              :filter, :extending, :skip_callbacks]
+                              :filter, :or_filter, :extending, :skip_callbacks]
       SINGLE_VALUE_METHODS = [:size]
 
       class WhereChain
@@ -183,6 +183,15 @@ module Elasticsearch
         end
       end
 
+
+      def or_filter(name, options = {}, &block)
+        spawn.or_filter!(name, options, &block)
+      end
+
+      def or_filter!(name, options = {}, &block)
+        self.or_filter_values += [{name: name, args: options}]
+        self
+      end
 
 
 

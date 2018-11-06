@@ -2,7 +2,7 @@ module Elasticsearch
   module Persistence
     class Relation
 
-        MULTI_VALUE_METHODS  = [:order, :where, :filter, :bind, :extending, :unscope, :skip_callbacks]
+        MULTI_VALUE_METHODS  = [:order, :where, :or_filter, :filter, :bind, :extending, :unscope, :skip_callbacks]
         SINGLE_VALUE_METHODS = [:limit, :offset, :routing, :size]
 
         INVALID_METHODS_FOR_DELETE_ALL = [:limit, :offset]

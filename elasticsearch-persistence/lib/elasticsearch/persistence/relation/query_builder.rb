@@ -16,6 +16,10 @@ module Elasticsearch
         values[:filter]
       end
 
+      def or_filters
+        values[:or_filter]
+      end
+
       def query
         @query ||= compact_where(values[:where])
       end
@@ -69,7 +73,6 @@ module Elasticsearch
         build_query
         build_sort unless sort.blank?
         build_highlights unless highlights.blank?
-      #  build_filters unless filters.blank?
         build_fields unless fields.blank?
         build_source unless source.blank?
         build_aggregations unless aggregations.blank?
@@ -98,7 +101,7 @@ module Elasticsearch
             structure.must_not must_nots unless must_nots.nil?
             structure.should shoulds unless shoulds.nil?
 
-            build_filtered_query if query_filters
+            build_filtered_query if query_filters || or_filters
 
           end unless missing_bool_query? && missing_query_filter?
 
@@ -112,13 +115,21 @@ module Elasticsearch
 
       def build_filtered_query
         structure.filter do
+          structure.or do
+            or_filters.each do |f|
+              structure.child! do
+                structure.set! f[:name], extract_filters(f[:name], f[:args])
+              end
+            end
+          end unless or_filters.blank?
+
           structure.and do
             query_filters.each do |f|
               structure.child! do
                 structure.set! f[:name], extract_filters(f[:name], f[:args])
               end
             end
-          end
+          end unless query_filters.blank?
         end
       end
 
@@ -145,6 +156,12 @@ module Elasticsearch
 
       def build_filters
         filters.each do |f|
+          structure.filter extract_filters(f[:name], f[:args])
+        end
+      end
+
+      def build_or_filters
+        or_filters.each do |f|
           structure.filter extract_filters(f[:name], f[:args])
         end
       end
