@@ -134,9 +134,13 @@ module Elasticsearch
       end
 
       def build_source
-        structure._source do
-          structure.include source.first.delete(:include) if source.first.has_key? :include
-          structure.exclude source.first.delete(:exclude) if source.first.has_key? :exclude
+        if [true,false].include? source.first
+          structure._source source.first
+        else
+          structure._source do
+              structure.include source.first.delete(:include) if source.first.has_key? :include
+              structure.exclude source.first.delete(:exclude) if source.first.has_key? :exclude
+          end
         end
       end
 
@@ -205,6 +209,7 @@ module Elasticsearch
         q.each do |arg|
           arg.each_pair { |k,v| _must << {term: Hash[k,v]} } if arg.class == Hash
           _must << {term: Hash[[arg.split(/:/).collect(&:strip)]]} if arg.class == String
+          _must << arg.first if arg.class == Array
         end
         _must.length == 1 ? _must.first : _must
       end

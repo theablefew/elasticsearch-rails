@@ -34,6 +34,11 @@ module Elasticsearch
             results.respond_to?(method_name) || super
           end
 
+          def inner_hits
+            response['hits']['hits'].collect { |d| d['inner_hits'] }
+          end
+
+
           # The number of total hits for a query
           #
           def total
