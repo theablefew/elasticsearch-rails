@@ -90,7 +90,7 @@ module Elasticsearch
       end
 
       def missing_query_filter?
-        query_filters.nil?
+        query_filters.nil? && or_filters.nil?
       end
 
       def build_query
