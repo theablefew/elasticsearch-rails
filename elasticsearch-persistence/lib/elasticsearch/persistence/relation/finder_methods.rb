@@ -24,6 +24,7 @@ module Elasticsearch
         end
 
         def count
+          return results.count if @loaded
           spawn.count!
         end
 
