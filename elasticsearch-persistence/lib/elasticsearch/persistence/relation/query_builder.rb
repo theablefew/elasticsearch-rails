@@ -97,9 +97,9 @@ module Elasticsearch
         return if missing_bool_query? && missing_query_string? && missing_query_filter?
         structure.query do
           structure.bool do
-            structure.must query unless missing_bool_query?
-            structure.must_not must_nots unless must_nots.nil?
-            structure.should shoulds unless shoulds.nil?
+                structure.must query unless missing_bool_query?
+                structure.must_not must_nots unless must_nots.nil?
+                structure.should shoulds unless shoulds.nil?
 
             build_filtered_query if query_filters || or_filters
 
@@ -123,10 +123,12 @@ module Elasticsearch
             end
           end unless or_filters.blank?
 
-          structure.and do
-            query_filters.each do |f|
-              structure.child! do
-                structure.set! f[:name], extract_filters(f[:name], f[:args])
+          structure.bool do
+            structure.must do
+              query_filters.each do |f|
+                structure.child! do
+                  structure.set! f[:name], extract_filters(f[:name], f[:args])
+                end
               end
             end
           end unless query_filters.blank?
@@ -207,7 +209,7 @@ module Elasticsearch
       def as_must(q)
         _must = []
         q.each do |arg|
-          arg.each_pair { |k,v| _must << {term: Hash[k,v]} } if arg.class == Hash
+          arg.each_pair { |k,v| _must << (v.is_a?(Array) ? {terms: Hash[k,v]} : {term: Hash[k,v]}) } if arg.class == Hash
           _must << {term: Hash[[arg.split(/:/).collect(&:strip)]]} if arg.class == String
           _must << arg.first if arg.class == Array
         end
