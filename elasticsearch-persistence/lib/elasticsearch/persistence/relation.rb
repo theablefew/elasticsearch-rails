@@ -89,7 +89,12 @@ module Elasticsearch
 
         def inspect
           entries = to_a.results.take([size_value.to_i + 1, 11].compact.min).map!(&:inspect)
-          "#<#{self.class.name} [#{entries.join(', ')}, total: #{to_a.total}, max: #{to_a.total} ]>"
+          message = {}
+          message = {total: to_a.total, max: to_a.total}
+          message.merge!(aggregations: results.aggregations.keys) unless results.aggregations.nil?
+          message = message.each_pair.collect { |k,v|  "#{k}: #{v}" }
+          message.unshift entries.join(', ') unless entries.size.zero?
+          "#<#{self.class.name} #{message.join(', ')}>"
         end
 
 
