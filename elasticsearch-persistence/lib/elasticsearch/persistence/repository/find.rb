@@ -44,14 +44,14 @@ module Elasticsearch
         #
         def exists?(id, options={})
           type     = document_type || (klass ? __get_type_from_class(klass) : '_all')
-          client.exists( { index: index_name, type: type, id: id }.merge(options) )
+          client.exists( { index: index_name,  id: id }.merge(options) )
         end
 
         # @api private
         #
         def __find_one(id, options={})
           type     = document_type || (klass ? __get_type_from_class(klass) : '_all')
-          document = client.get( { index: index_name, type: type, id: id }.merge(options) )
+          document = client.get( { index: index_name, id: id }.merge(options) )
 
           deserialize(document)
         rescue Elasticsearch::Transport::Transport::Errors::NotFound => e
@@ -62,7 +62,7 @@ module Elasticsearch
         #
         def __find_many(ids, options={})
           type     = document_type || (klass ? __get_type_from_class(klass) : '_all')
-          documents = client.mget( { index: index_name, type: type, body: { ids: ids } }.merge(options) )
+          documents = client.mget( { index: index_name,  body: { ids: ids } }.merge(options) )
 
           documents['docs'].map { |document| document['found'] ? deserialize(document) : nil }
         end

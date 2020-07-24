@@ -98,6 +98,7 @@ module Elasticsearch
         end
 
 
+
         private
 
         def query_builder

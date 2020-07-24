@@ -68,6 +68,10 @@ module Elasticsearch
         @query_string_options || {}
       end
 
+      def count?
+        values[:count]
+      end
+
       def to_elastic
         @structure = Jbuilder.new ignore_nil: true
         build_query

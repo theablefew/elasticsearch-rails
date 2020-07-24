@@ -9,7 +9,11 @@ module Elasticsearch
         delegate :must, :must_not, :should, :where_not, :query_string, to: :all
 
         def fetch_results(es)
-          gateway.search(es.to_elastic, es.search_options)
+          unless es.count?
+            gateway.search(es.to_elastic, es.search_options)
+          else
+            gateway.count(es.to_elastic, es.search_options)
+          end
         end
 
       end

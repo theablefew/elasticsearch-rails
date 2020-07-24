@@ -17,8 +17,7 @@ module Elasticsearch
         def save(document, options={})
           serialized = serialize(document)
           id   = __get_id_from_document(serialized)
-          type = document_type || __get_type_from_class(klass || document.class)
-          client.index( { index: index_name, type: type, id: id, body: serialized }.merge(options) )
+          client.index( { index: index_name, id: id, body: serialized }.merge(options) )
         end
 
         # Update the serialized object in Elasticsearch with partial data or script
@@ -65,7 +64,7 @@ module Elasticsearch
             body.update( upsert: options.delete(:upsert)) if options[:upsert]
           end
 
-          client.update( { index: index_name, type: type, id: id, body: body }.merge(options) )
+          client.update( { index: index_name, id: id, body: body }.merge(options) )
         end
 
         # Remove the serialized object or document with specified ID from Elasticsearch
@@ -86,7 +85,7 @@ module Elasticsearch
             id   = __get_id_from_document(serialized)
             type = document_type || __get_type_from_class(klass || document.class)
           end
-          client.delete( { index: index_name, type: type, id: id }.merge(options) )
+          client.delete( { index: index_name, id: id }.merge(options) )
         end
       end
 

@@ -29,7 +29,9 @@ module Elasticsearch
         end
 
         def count!
-          spawn.size(0).to_a.total
+          @values[:count] = true
+          @values.delete(:size)
+          spawn.to_a["count"]
         end
 
       end
