@@ -16,7 +16,7 @@ module Elasticsearch
 
         # @see Base#initialize
         #
-        def initialize(klass, response, options={})
+        def initialize(klass, response, options = {})
           super
 
           # Include module provided by the adapter in the singleton class ("metaclass")
@@ -31,7 +31,7 @@ module Elasticsearch
         # Returns the hit IDs
         #
         def ids
-          response.response['hits']['hits'].map { |hit| hit['_id'] }
+          response.response["hits"]["hits"].map { |hit| hit["_id"] }
         end
 
         # Returns the {Results} collection
@@ -63,7 +63,6 @@ module Elasticsearch
         def respond_to?(method_name, include_private = false)
           records.respond_to?(method_name) || super
         end
-
       end
     end
   end

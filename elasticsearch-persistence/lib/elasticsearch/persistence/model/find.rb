@@ -1,12 +1,8 @@
 module Elasticsearch
   module Persistence
     module Model
-
       module Find
         module ClassMethods
-
-
-
 
           # Returns the number of models
           #
@@ -27,8 +23,8 @@ module Elasticsearch
           #
           # @return [Integer]
           #
-          def count(query_or_definition=nil, options={})
-            gateway.count( query_or_definition, options )
+          def count(query_or_definition = nil, options = {})
+            gateway.count(query_or_definition, options)
           end
 
           # Returns all models efficiently via the Elasticsearch's scan/scroll API
@@ -66,7 +62,7 @@ module Elasticsearch
           #
           # @return [String,Enumerator] The `scroll_id` for the request or Enumerator when the block is not passed
           #
-          def find_in_batches(options={}, &block)
+          def find_in_batches(options = {}, &block)
             return to_enum(:find_in_batches, options) unless block_given?
 
             search_params = options.slice(
@@ -87,35 +83,36 @@ module Elasticsearch
               :_source_include,
               :_source_exclude,
               :stats,
-              :timeout)
+              :timeout
+            )
 
-            scroll = search_params.delete(:scroll) || '5m'
+            scroll = search_params.delete(:scroll) || "5m"
 
             body = options
 
             puts "BODY: #{body}".color :red
             # Get the initial scroll_id
             #
-            response = gateway.client.search( { index: gateway.index_name,
-                                         type:  gateway.document_type,
-                                         search_type: 'scan',
-                                         scroll:      scroll,
-                                         size:        20,
-                                         body:        body }.merge(search_params) )
+            response = gateway.client.search({ index: gateway.index_name,
+                                               type: gateway.document_type,
+                                               search_type: "scan",
+                                               scroll: scroll,
+                                               size: 20,
+                                               body: body }.merge(search_params))
 
             # Get the initial batch of documents
             #
-            response = gateway.client.scroll( { scroll_id: response['_scroll_id'], scroll: scroll } )
+            response = gateway.client.scroll({ scroll_id: response["_scroll_id"], scroll: scroll })
 
             # Break when receiving an empty array of hits
             #
-            while response['hits']['hits'].any? do
+            while response["hits"]["hits"].any?
               yield Repository::Response::Results.new(gateway, response)
 
-              response = gateway.client.scroll( { scroll_id: response['_scroll_id'], scroll: scroll } )
+              response = gateway.client.scroll({ scroll_id: response["_scroll_id"], scroll: scroll })
             end
 
-            return response['_scroll_id']
+            return response["_scroll_id"]
           end
 
           # Iterate effectively over models using the `find_in_batches` method.
@@ -153,7 +150,6 @@ module Elasticsearch
           end
         end
       end
-
     end
   end
 end

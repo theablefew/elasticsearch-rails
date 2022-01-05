@@ -1,3 +1,20 @@
+# Licensed to Elasticsearch B.V. under one or more contributor
+# license agreements. See the NOTICE file distributed with
+# this work for additional information regarding copyright
+# ownership. Elasticsearch B.V. licenses this file to you under
+# the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
 module Elasticsearch
   module Model
 
@@ -13,12 +30,12 @@ module Elasticsearch
     #
     module Indexing
 
-      # Wraps the [index settings](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/setup-configuration.html#configuration-index-settings)
+      # Wraps the [index settings](https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html)
       #
       class Settings
         attr_accessor :settings
 
-        def initialize(settings={})
+        def initialize(settings = {})
           @settings = settings
         end
 
@@ -26,20 +43,21 @@ module Elasticsearch
           @settings
         end
 
-        def as_json(options={})
+        def as_json(options = {})
           to_hash
         end
       end
 
-      # Wraps the [index mappings](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/mapping.html)
+      # Wraps the [index mappings](https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html)
       #
       class Mappings
-        attr_accessor :options
+        attr_accessor :options, :type
 
-        def initialize(type, options={})
-          raise ArgumentError, "`type` is missing" if type.nil?
+        # @private
+        TYPES_WITH_EMBEDDED_PROPERTIES = %w(object nested)
 
-          @type    = type
+        def initialize(type = nil, options = {})
+          @type = type
           @options = options
           @mapping = {}
         end
@@ -48,8 +66,8 @@ module Elasticsearch
           @mapping[name] = options
 
           if block_given?
-            @mapping[name][:type] ||= 'object'
-            properties = @mapping[name][:type] == 'multi_field' ? :fields : :properties
+            @mapping[name][:type] ||= "object"
+            properties = TYPES_WITH_EMBEDDED_PROPERTIES.include?(@mapping[name][:type].to_s) ? :properties : :fields
 
             @mapping[name][properties] ||= {}
 
@@ -62,18 +80,21 @@ module Elasticsearch
             end
           end
 
-          # Set the type to `string` by default
-          #
-          @mapping[name][:type] ||= 'string'
+          # Set the type to `text` by default
+          @mapping[name][:type] ||= "text"
 
           self
         end
 
         def to_hash
-          { @type.to_sym => @options.merge( properties: @mapping ) }
+          # if @type
+          #   { @type.to_sym => @options.merge(properties: @mapping) }
+          # else
+          @options.merge(properties: @mapping)
+          # end
         end
 
-        def as_json(options={})
+        def as_json(options = {})
           to_hash
         end
       end
@@ -128,20 +149,22 @@ module Elasticsearch
         #     # => {:article=>{:dynamic=>"strict", :properties=>{:foo=>{:type=>"long"}}}}
         #
         # The `mappings` and `settings` methods are accessible directly on the model class,
-        # when it doesn't already defines them. Use the `__elasticsearch__` proxy otherwise.
+        # when it doesn't already define them. Use the `__elasticsearch__` proxy otherwise.
         #
-        def mapping(options={}, &block)
+        def mapping(options = {}, &block)
           @mapping ||= Mappings.new(document_type, options)
 
-          if block_given?
-            @mapping.options.update(options)
+          @mapping.options.update(options) unless options.empty?
 
+          if block_given?
             @mapping.instance_eval(&block)
             return self
           else
             @mapping
           end
-        end; alias_method :mappings, :mapping
+        end
+
+        alias_method :mappings, :mapping
 
         # Define settings for the index
         #
@@ -153,7 +176,39 @@ module Elasticsearch
         #
         #     # => {:index=>{:number_of_shards=>1}}
         #
-        def settings(settings={}, &block)
+        # You can read settings from any object that responds to :read
+        # as long as its return value can be parsed as either YAML or JSON.
+        #
+        # @example Define index settings from YAML file
+        #
+        #     # config/elasticsearch/articles.yml:
+        #     #
+        #     # index:
+        #     #   number_of_shards: 1
+        #     #
+        #
+        #     Article.settings File.open("config/elasticsearch/articles.yml")
+        #
+        #     Article.settings.to_hash
+        #
+        #     # => { "index" => { "number_of_shards" => 1 } }
+        #
+        #
+        # @example Define index settings from JSON file
+        #
+        #     # config/elasticsearch/articles.json:
+        #     #
+        #     # { "index": { "number_of_shards": 1 } }
+        #     #
+        #
+        #     Article.settings File.open("config/elasticsearch/articles.json")
+        #
+        #     Article.settings.to_hash
+        #
+        #     # => { "index" => { "number_of_shards" => 1 } }
+        #
+        def settings(settings = {}, &block)
+          settings = YAML.load(settings.read) if settings.respond_to?(:read)
           @settings ||= Settings.new(settings)
 
           @settings.settings.update(settings) unless settings.empty?
@@ -164,6 +219,10 @@ module Elasticsearch
           else
             @settings
           end
+        end
+
+        def load_settings_from_io(settings)
+          YAML.load(settings.read)
         end
 
         # Creates an index with correct name, automatically passing
@@ -181,24 +240,39 @@ module Elasticsearch
         #
         #     Article.__elasticsearch__.create_index! index: 'my-index'
         #
-        def create_index!(options={})
+        def create_index!(options = {})
+          options = options.clone
+
           target_index = options.delete(:index) || self.index_name
+          settings = options.delete(:settings) || self.settings.to_hash
+          mappings = options.delete(:mappings) || self.mappings.to_hash
 
           delete_index!(options.merge index: target_index) if options[:force]
 
-          unless ( self.client.indices.exists(index: target_index) rescue false )
-            begin
-              self.client.indices.create index: target_index,
-                                         body: {
-                                           settings: self.settings.to_hash,
-                                           mappings: self.mappings.to_hash }
-            rescue Exception => e
-              unless e.class.to_s =~ /NotFound/ && options[:force]
-                STDERR.puts "[!!!] Error when creating the index: #{e.class}", "#{e.message}"
-              end
-            end
-          else
+          unless index_exists?(index: target_index)
+            options.delete(:force)
+            self.client.indices.create({ index: target_index,
+                                        body: {
+              settings: settings,
+              mappings: mappings,
+            } }.merge(options))
           end
+        end
+
+        # Returns true if the index exists
+        #
+        # @example Check whether the model's index exists
+        #
+        #     Article.__elasticsearch__.index_exists?
+        #
+        # @example Check whether a specific index exists
+        #
+        #     Article.__elasticsearch__.index_exists? index: 'my-index'
+        #
+        def index_exists?(options = {})
+          target_index = options[:index] || self.index_name
+
+          self.client.indices.exists(index: target_index, ignore: 404)
         end
 
         # Deletes the index with corresponding name
@@ -211,14 +285,17 @@ module Elasticsearch
         #
         #     Article.__elasticsearch__.delete_index! index: 'my-index'
         #
-        def delete_index!(options={})
+        def delete_index!(options = {})
           target_index = options.delete(:index) || self.index_name
 
           begin
             self.client.indices.delete index: target_index
           rescue Exception => e
-            unless e.class.to_s =~ /NotFound/ && options[:force]
-              STDERR.puts "[!!!] Error when deleting the index: #{e.class}", "#{e.message}"
+            if e.class.to_s =~ /NotFound/ && options[:force]
+              client.transport.transport.logger.debug("[!!!] Index does not exist (#{e.class})") if client.transport.transport.logger
+              nil
+            else
+              raise e
             end
           end
         end
@@ -233,36 +310,48 @@ module Elasticsearch
         #
         #     Article.__elasticsearch__.refresh_index! index: 'my-index'
         #
-        # @see http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/indices-refresh.html
+        # @see https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-refresh.html
         #
-        def refresh_index!(options={})
+        def refresh_index!(options = {})
           target_index = options.delete(:index) || self.index_name
 
           begin
             self.client.indices.refresh index: target_index
           rescue Exception => e
-            unless e.class.to_s =~ /NotFound/ && options[:force]
-              STDERR.puts "[!!!] Error when refreshing the index: #{e.class}", "#{e.message}"
+            if e.class.to_s =~ /NotFound/ && options[:force]
+              client.transport.transport.logger.debug("[!!!] Index does not exist (#{e.class})") if client.transport.transport.logger
+              nil
+            else
+              raise e
             end
           end
         end
       end
 
       module InstanceMethods
-
         def self.included(base)
           # Register callback for storing changed attributes for models
-          # which implement `before_save` and `changed_attributes` methods
+          # which implement `before_save` and return changed attributes
+          # (ie. when `Elasticsearch::Model` is included)
           #
           # @note This is typically triggered only when the module would be
           #       included in the model directly, not within the proxy.
           #
           # @see #update_document
           #
-          base.before_save do |instance|
-            instance.instance_variable_set(:@__changed_attributes,
-                                  Hash[ instance.changes.map { |key, value| [key, value.last] } ])
-          end if base.respond_to?(:before_save) && base.instance_methods.include?(:changed_attributes)
+          base.before_save do |obj|
+            if obj.respond_to?(:changes_to_save) # Rails 5.1
+              changes_to_save = obj.changes_to_save
+            elsif obj.respond_to?(:changes)
+              changes_to_save = obj.changes
+            end
+
+            if changes_to_save
+              attrs = obj.instance_variable_get(:@__changed_model_attributes) || {}
+              latest_changes = changes_to_save.inject({}) { |latest_changes, (k, v)| latest_changes.merge!(k => v.last) }
+              obj.instance_variable_set(:@__changed_model_attributes, attrs.merge(latest_changes))
+            end
+          end if base.respond_to?(:before_save)
         end
 
         # Serializes the model instance into JSON (by calling `as_indexed_json`),
@@ -279,15 +368,14 @@ module Elasticsearch
         #
         # @see http://rubydoc.info/gems/elasticsearch-api/Elasticsearch/API/Actions:index
         #
-        def index_document(options={})
-          document = self.as_indexed_json
+        def index_document(options = {})
+          document = as_indexed_json
+          request = { index: index_name,
+                      id: id,
+                      body: document }
+          request.merge!(type: document_type) if document_type
 
-          client.index(
-            { index: index_name,
-              type:  document_type,
-              id:    self.id,
-              body:  document }.merge(options)
-          )
+          client.index(request.merge!(options))
         end
 
         # Deletes the model instance from the index
@@ -303,12 +391,12 @@ module Elasticsearch
         #
         # @see http://rubydoc.info/gems/elasticsearch-api/Elasticsearch/API/Actions:delete
         #
-        def delete_document(options={})
-          client.delete(
-            { index: index_name,
-              type:  document_type,
-              id:    self.id }.merge(options)
-          )
+        def delete_document(options = {})
+          request = { index: index_name,
+                      id: self.id }
+          request.merge!(type: document_type) if document_type
+
+          client.delete(request.merge!(options))
         end
 
         # Tries to gather the changed attributes of a model instance
@@ -316,6 +404,8 @@ module Elasticsearch
         # performing a _partial_ update of the document.
         #
         # When the changed attributes are not available, performs full re-index of the record.
+        #
+        # See the {#update_document_attributes} method for updating specific attributes directly.
         #
         # @param options [Hash] Optional arguments for passing to the client
         #
@@ -333,26 +423,50 @@ module Elasticsearch
         #
         # @see http://rubydoc.info/gems/elasticsearch-api/Elasticsearch/API/Actions:update
         #
-        def update_document(options={})
-          if changed_attributes = self.instance_variable_get(:@__changed_attributes)
+        def update_document(options = {})
+          if attributes_in_database = self.instance_variable_get(:@__changed_model_attributes).presence
             attributes = if respond_to?(:as_indexed_json)
-              self.as_indexed_json.select { |k,v| changed_attributes.keys.map(&:to_s).include? k.to_s }
-            else
-              changed_attributes
-            end
+                self.as_indexed_json.select { |k, v| attributes_in_database.keys.map(&:to_s).include? k.to_s }
+              else
+                attributes_in_database
+              end
 
-            client.update(
-              { index: index_name,
-                type:  document_type,
-                id:    self.id,
-                body:  { doc: attributes } }.merge(options)
-            )
+            unless attributes.empty?
+              request = { index: index_name,
+                          id: self.id,
+                          body: { doc: attributes } }
+              request.merge!(type: document_type) if document_type
+
+              client.update(request.merge!(options))
+            end
           else
             index_document(options)
           end
         end
-      end
 
+        # Perform a _partial_ update of specific document attributes
+        # (without consideration for changed attributes as in {#update_document})
+        #
+        # @param attributes [Hash] Attributes to be updated
+        # @param options    [Hash] Optional arguments for passing to the client
+        #
+        # @example Update the `title` attribute
+        #
+        #     @article = Article.first
+        #     @article.title = "New title"
+        #     @article.__elasticsearch__.update_document_attributes title: "New title"
+        #
+        # @return [Hash] The response from Elasticsearch
+        #
+        def update_document_attributes(attributes, options = {})
+          request = { index: index_name,
+                      id: self.id,
+                      body: { doc: attributes } }
+          request.merge!(type: document_type) if document_type
+
+          client.update(request.merge!(options))
+        end
+      end
     end
   end
 end

@@ -5,7 +5,6 @@ module Elasticsearch
       # Returns a collection of domain objects by an Elasticsearch query
       #
       module Search
-
         include Elasticsearch::Persistence::QueryCache
         # Returns a collection of domain objects by an Elasticsearch query
         #
@@ -40,8 +39,8 @@ module Elasticsearch
         #
         # @return [Elasticsearch::Persistence::Repository::Response::Results]
         #
-        def search(query_or_definition, options={})
-          request = {index: index_name, body: query_or_definition.to_hash }
+        def search(query_or_definition, options = {})
+          request = { index: index_name, body: query_or_definition.to_hash }
 
           case
           when query_or_definition.respond_to?(:to_hash)
@@ -77,24 +76,22 @@ module Elasticsearch
         #
         # @return [Integer]
         #
-        def count(query_or_definition=nil, options={})
+        def count(query_or_definition = nil, options = {})
           query_or_definition ||= { query: { match_all: {} } }
 
-          request = {index: index_name, body: query_or_definition.to_hash }
+          request = { index: index_name, body: query_or_definition.to_hash }
           response = cache_query(to_curl(request.merge(options), "_count"), klass) { client.count(request.merge(options)) }
 
           response
-
         end
-
 
         private
 
         ## TODO: Not happy with where this is living right now.
         #
-        def to_curl(arguments={}, end_point = "_search")
+        def to_curl(arguments = {}, end_point = "_search")
           host = client.transport.options[:hosts].first
-          arguments[:index] = '_all' if ! arguments[:index] && arguments[:type]
+          arguments[:index] = "_all" if !arguments[:index] && arguments[:type]
 
           valid_params = [
             :analyzer,
@@ -127,36 +124,33 @@ module Elasticsearch
             :suggest_size,
             :suggest_text,
             :timeout,
-            :version ]
+            :version,
+          ]
 
-            method = 'GET'
-            path   = Elasticsearch::API::Utils.__pathify( Elasticsearch::API::Utils.__listify(arguments[:index]), end_point )
+          method = "GET"
+          path = Elasticsearch::API::Utils.__pathify(Elasticsearch::API::Utils.__listify(arguments[:index]), end_point)
 
-            params = Elasticsearch::API::Utils.__validate_and_extract_params arguments, valid_params
-            body   = arguments[:body]
+          params = Elasticsearch::API::Utils.__validate_and_extract_params arguments, valid_params
+          body = arguments[:body]
 
-            params[:fields] = Elasticsearch::API::Utils.__listify(params[:fields]) if params[:fields]
+          params[:fields] = Elasticsearch::API::Utils.__listify(params[:fields]) if params[:fields]
 
-            url        = path
+          url = path
 
+          unless host.is_a? String
+            host_parts = "#{host[:protocol].to_s}://#{host[:host]}"
+            host_parts = "#{host_parts}:#{host[:port]}" if host[:port]
+          else
+            host_parts = host
+          end
 
-            unless host.is_a? String
-              host_parts = "#{host[:protocol].to_s}://#{host[:host]}"
-              host_parts = "#{host_parts}:#{host[:port]}" if host[:port]
-            else
-              host_parts = host
-            end
+          trace_url = "#{host_parts}/#{url}"
+          trace_url += "?#{::Faraday::Utils::ParamsHash[params].to_query}" unless params.blank?
+          trace_body = body ? " -d '#{body.to_json}'" : ""
 
-
-            trace_url  = "#{host_parts}/#{url}"
-            trace_url += "?#{::Faraday::Utils::ParamsHash[params].to_query}" unless params.blank?
-            trace_body = body ? " -d '#{body.to_json}'" : ''
-
-            Rainbow("curl -X #{method.to_s.upcase} '#{CGI.unescape(trace_url)}'#{trace_body}\n").color :white
+          Rainbow("curl -X #{method.to_s.upcase} '#{CGI.unescape(trace_url)}'#{trace_body}\n").color :white
         end
-
       end
-
     end
   end
 end

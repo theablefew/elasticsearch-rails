@@ -1,11 +1,15 @@
-require 'active_support/core_ext/module'
+require "active_support/core_ext/module"
 
 module Elasticsearch
   module Persistence
     module QueryCache
-
       module CacheMethods
         mattr_accessor :force_cache
+        mattr_accessor :cache_store
+        mattr_accessor :cache_store_expire_in
+
+        @@cache_store_expire_in = 300
+
         @@force_cache = false
 
         def cache
@@ -16,14 +20,14 @@ module Elasticsearch
         end
 
         def setup_store!
-          case ::Rails.application.config.goodyear_cache_store
-           when :redis_store
-             ActiveSupport::Cache::RedisStore
-           when :memory_store
-             ActiveSupport::Cache::MemoryStore
-           else
-             ActiveSupport::Cache::MemoryStore
-           end.new(namespace: 'elasticsearch', expires_in: ::Rails.application.config.goodyear_expire_cache_in)
+          case Elasticsearch::Persistence.cache_store
+          when :redis_store
+            ActiveSupport::Cache::RedisStore
+          when :memory_store
+            ActiveSupport::Cache::MemoryStore
+          else
+            ActiveSupport::Cache::MemoryStore
+          end.new(namespace: "elasticsearch", expires_in: Elasticsearch::Persistence.cache_store_expire_in)
         end
       end
 
@@ -45,7 +49,7 @@ module Elasticsearch
             ActiveSupport::Notifications.instrument "query.elasticsearch",
               name: klass.name,
               query: query do
-                res = yield
+              res = yield
             end
 
             store.write(cache_key, res) if Elasticsearch::Persistence.force_cache
@@ -54,13 +58,11 @@ module Elasticsearch
         result.dup
       end
 
-
       private
 
       def sha(str)
         Digest::SHA256.new.hexdigest(str)
       end
-
     end
   end
 end

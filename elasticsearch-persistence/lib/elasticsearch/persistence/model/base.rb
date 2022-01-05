@@ -8,8 +8,8 @@ module Elasticsearch
 
           # Model initializer sets the `@id` variable if passed
           #
-          def initialize(attributes={})
-            @_id = attributes[:id] || attributes['id']
+          def initialize(attributes = {})
+            @_id = attributes[:id] || attributes["id"]
             super
           end
 
@@ -23,13 +23,17 @@ module Elasticsearch
           #
           def id
             @_id
-          end; alias :_id :id
+          end
+
+          alias :_id :id
 
           # Set the document `_id`
           #
           def id=(value)
             @_id = value
-          end; alias :_id= :id=
+          end
+
+          alias :_id= :id=
 
           # Return the document `_index`
           #
@@ -55,7 +59,9 @@ module Elasticsearch
 
           def to_s
             "#<#{self.class} #{attributes.to_hash.inspect.gsub(/:(\w+)=>/, '\1: ')}>"
-          end; alias :inspect :to_s
+          end
+
+          alias :inspect :to_s
         end
       end
 
@@ -67,18 +73,22 @@ module Elasticsearch
         #
         def lookup_type(type)
           case
-            when type == String
-              'string'
-            when type == Integer
-              'integer'
-            when type == Float
-              'float'
-            when type == Date || type == Time || type == DateTime
-              'date'
-            when type == Virtus::Attribute::Boolean
-              'boolean'
+          when type == :keyword
+            "keyword"
+          when type == String
+            "text"
+          when type == Integer
+            "integer"
+          when type == Float
+            "float"
+          when type == Date || type == Time || type == DateTime
+            "date"
+          when type == Virtus::Attribute::Boolean
+            "boolean"
           end
-        end; module_function :lookup_type
+        end
+
+        module_function :lookup_type
       end
     end
   end
