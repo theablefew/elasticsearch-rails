@@ -16,12 +16,10 @@ module Elasticsearch
           #
           # @return [Object] The model instance
           #
-          def create(attributes, options={})
+          def create(attributes, options = {})
             object = self.new(attributes)
-            object.run_callbacks :create do
-              object.save(options)
-              object
-            end
+            object.save(options)
+            object
           end
         end
 
@@ -43,37 +41,36 @@ module Elasticsearch
           #
           # @return [Hash,FalseClass] The Elasticsearch response as a Hash or `false`
           #
-          def save(options={})
+          def save(options = {})
             return false unless valid?
 
             run_callbacks :save do
               options.update id: self.id
               options.update index: self._index if self._index
-              options.update type:  self._type  if self._type
-
+              options.update type: self._type if self._type
 
               if new_record?
                 response = run_callbacks :create do
-                    response = self.class.gateway.save(self, options)
-                    self[:updated_at] = Time.now.utc
+                  response = self.class.gateway.save(self, options)
+                  self[:updated_at] = Time.now.utc
 
-                    @_id       = response['_id']
-                    @_index    = response['_index']
-                    @_type     = response['_type']
-                    @_version  = response['_version']
-                    @persisted = true
+                  @_id = response["_id"]
+                  @_index = response["_index"]
+                  @_type = response["_type"]
+                  @_version = response["_version"]
+                  @persisted = true
 
-                    response
+                  response
                 end
               else
                 response = self.class.gateway.save(self, options)
 
                 self[:updated_at] = Time.now.utc
 
-                @_id       = response['_id']
-                @_index    = response['_index']
-                @_type     = response['_type']
-                @_version  = response['_version']
+                @_id = response["_id"]
+                @_index = response["_index"]
+                @_type = response["_type"]
+                @_version = response["_version"]
                 @persisted = true
 
                 response
@@ -90,12 +87,12 @@ module Elasticsearch
           #
           # @return [Hash] The Elasticsearch response as a Hash
           #
-          def destroy(options={})
+          def destroy(options = {})
             raise DocumentNotPersisted, "Object not persisted: #{self.inspect}" unless persisted?
 
             run_callbacks :destroy do
               options.update index: self._index if self._index
-              options.update type:  self._type  if self._type
+              options.update type: self._type if self._type
 
               response = self.class.gateway.delete(self.id, options)
 
@@ -104,7 +101,9 @@ module Elasticsearch
               self.freeze
               response
             end
-          end; alias :delete :destroy
+          end
+
+          alias :delete :destroy
 
           # Updates the model (via Elasticsearch's "Update" API) and returns the response
           #
@@ -115,25 +114,27 @@ module Elasticsearch
           #
           # @return [Hash] The Elasticsearch response as a Hash
           #
-          def update(attributes={}, options={})
+          def update(attributes = {}, options = {})
             raise DocumentNotPersisted, "Object not persisted: #{self.inspect}" unless persisted?
 
             run_callbacks :update do
               options.update index: self._index if self._index
-              options.update type:  self._type  if self._type
+              options.update type: self._type if self._type
 
-              attributes.update( { updated_at: Time.now.utc } )
+              attributes.update({ updated_at: Time.now.utc })
 
-              response = self.class.gateway.update(self.id, { doc: attributes}.merge(options))
+              response = self.class.gateway.update(self.id, { doc: attributes }.merge(options))
 
               self.attributes = self.attributes.merge(attributes)
-              @_index    = response['_index']
-              @_type     = response['_type']
-              @_version  = response['_version']
+              @_index = response["_index"]
+              @_type = response["_type"]
+              @_version = response["_version"]
 
               response
             end
-          end; alias :update_attributes :update
+          end
+
+          alias :update_attributes :update
 
           # Increments a numeric attribute (via Elasticsearch's "Update" API) and returns the response
           #
@@ -147,19 +148,19 @@ module Elasticsearch
           #
           # @return [Hash] The Elasticsearch response as a Hash
           #
-          def increment(attribute, value=1, options={})
+          def increment(attribute, value = 1, options = {})
             raise DocumentNotPersisted, "Object not persisted: #{self.inspect}" unless persisted?
 
             options.update index: self._index if self._index
-            options.update type:  self._type  if self._type
+            options.update type: self._type if self._type
 
-            response = self.class.gateway.update(self.id, { script: "ctx._source.#{attribute} += #{value}"}.merge(options))
+            response = self.class.gateway.update(self.id, { script: "ctx._source.#{attribute} += #{value}" }.merge(options))
 
             self[attribute] += value
 
-            @_index    = response['_index']
-            @_type     = response['_type']
-            @_version  = response['_version']
+            @_index = response["_index"]
+            @_type = response["_type"]
+            @_version = response["_version"]
 
             response
           end
@@ -176,18 +177,18 @@ module Elasticsearch
           #
           # @return [Hash] The Elasticsearch response as a Hash
           #
-          def decrement(attribute, value=1, options={})
+          def decrement(attribute, value = 1, options = {})
             raise DocumentNotPersisted, "Object not persisted: #{self.inspect}" unless persisted?
 
             options.update index: self._index if self._index
-            options.update type:  self._type  if self._type
+            options.update type: self._type if self._type
 
-            response = self.class.gateway.update(self.id, { script: "ctx._source.#{attribute} = ctx._source.#{attribute} - #{value}"}.merge(options))
+            response = self.class.gateway.update(self.id, { script: "ctx._source.#{attribute} = ctx._source.#{attribute} - #{value}" }.merge(options))
             self[attribute] -= value
 
-            @_index    = response['_index']
-            @_type     = response['_type']
-            @_version  = response['_version']
+            @_index = response["_index"]
+            @_type = response["_type"]
+            @_version = response["_version"]
 
             response
           end
@@ -204,22 +205,22 @@ module Elasticsearch
           #
           # @return [Hash] The Elasticsearch response as a Hash
           #
-          def touch(attribute=:updated_at, options={})
-            raise DocumentNotPersisted, "Object not persisted: #{self.inspect}"  unless persisted?
+          def touch(attribute = :updated_at, options = {})
+            raise DocumentNotPersisted, "Object not persisted: #{self.inspect}" unless persisted?
             raise ArgumentError, "Object does not have '#{attribute}' attribute" unless respond_to?(attribute)
 
             run_callbacks :touch do
               options.update index: self._index if self._index
-              options.update type:  self._type  if self._type
+              options.update type: self._type if self._type
 
               value = Time.now.utc
-              response = self.class.gateway.update(self.id, { doc: { attribute => value.iso8601 }}.merge(options))
+              response = self.class.gateway.update(self.id, { doc: { attribute => value.iso8601 } }.merge(options))
 
               self[attribute] = value
 
-              @_index    = response['_index']
-              @_type     = response['_type']
-              @_version  = response['_version']
+              @_index = response["_index"]
+              @_type = response["_type"]
+              @_version = response["_version"]
 
               response
             end
@@ -250,23 +251,21 @@ module Elasticsearch
           end
 
           def becomes(klass)
-              became = klass.new(attributes)
-              changed_attributes = @changed_attributes if defined?(@changed_attributes)
-              became.instance_variable_set("@changed_attributes", changed_attributes || {})
-              became.instance_variable_set("@new_record", new_record?)
-              became.instance_variable_set("@destroyed", destroyed?)
-              became.instance_variable_set("@errors", errors)
-              became.instance_variable_set("@persisted", persisted?)
-              became.instance_variable_set("@_id", _id)
-              became.instance_variable_set("@_version", _version)
-              became.instance_variable_set("@_index", _index)
-              became.instance_variable_set("@_type", _type)
-              became
-            end
-
+            became = klass.new(attributes)
+            changed_attributes = @changed_attributes if defined?(@changed_attributes)
+            became.instance_variable_set("@changed_attributes", changed_attributes || {})
+            became.instance_variable_set("@new_record", new_record?)
+            became.instance_variable_set("@destroyed", destroyed?)
+            became.instance_variable_set("@errors", errors)
+            became.instance_variable_set("@persisted", persisted?)
+            became.instance_variable_set("@_id", _id)
+            became.instance_variable_set("@_version", _version)
+            became.instance_variable_set("@_index", _index)
+            became.instance_variable_set("@_type", _type)
+            became
+          end
         end
       end
-
     end
   end
 end
