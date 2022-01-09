@@ -90,7 +90,7 @@ module Elasticsearch
         ## TODO: Not happy with where this is living right now.
         #
         def to_curl(arguments = {}, end_point = "_search")
-          host = client.transport.options[:hosts].first
+          host = client.transport.options[:hosts]&.first || client.transport.options[:url]
           arguments[:index] = "_all" if !arguments[:index] && arguments[:type]
 
           valid_params = [
