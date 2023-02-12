@@ -81,17 +81,17 @@ module Elasticsearch
           end
 
           # Set the type to `text` by default
-          @mapping[name][:type] ||= "text"
+          @mapping[name][:type] ||= "keyword"
 
           self
         end
 
         def to_hash
-          # if @type
-          #   { @type.to_sym => @options.merge(properties: @mapping) }
-          # else
+          if @type
+            { @type.to_sym => @options.merge(properties: @mapping) }
+          else
           @options.merge(properties: @mapping)
-          # end
+          end
         end
 
         def as_json(options = {})
