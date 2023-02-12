@@ -107,7 +107,7 @@ module Elasticsearch
           gateway do
             klass base
             index_name base.model_name.collection.gsub(/\//, "-")
-            document_type base.model_name.element
+            document_type "_doc"
 
             def serialize(document)
               document.to_hash.except(:id, "id")

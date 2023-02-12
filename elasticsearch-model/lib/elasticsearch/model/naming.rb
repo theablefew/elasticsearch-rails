@@ -45,7 +45,7 @@ module Elasticsearch
         #     Article.document_type "my-article"
         #
         def document_type name=nil
-          @document_type = name || @document_type || self.model_name.element
+          @document_type = "_doc" #name || @document_type || self.model_name.element
         end
 
 
@@ -54,7 +54,7 @@ module Elasticsearch
         # @see document_type
         #
         def document_type=(name)
-          @document_type = name
+          @document_type = "_doc"
         end
       end
 
@@ -84,7 +84,7 @@ module Elasticsearch
         #     @article.__elasticsearch__.update_document
         #
         def document_type name=nil
-          @document_type = name || @document_type || self.class.document_type
+          @document_type = "_doc"#name || @document_type || self.class.document_type
         end
 
         # Set the document type
@@ -92,7 +92,7 @@ module Elasticsearch
         # @see document_type
         #
         def document_type=(name)
-          @document_type = name
+          @document_type = "_doc" #name
         end
       end
 
